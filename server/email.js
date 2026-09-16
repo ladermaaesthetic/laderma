@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { buildBookingICS } from './ics.js';
 
 const LOGO_URL =
   'https://d2xsxph8kpxj0f.cloudfront.net/310519663448677533/D7fnEQUJWHBXWGYDWnFdAo/la-derma-logo_de083f56.jpg';
@@ -64,13 +65,38 @@ function detailRow(label, value) {
     </tr>`;
 }
 
+// The "Add to Calendar" button. It links to a URL on our own server that
+// serves this specific booking's .ics file (see index.js's
+// /api/bookings/:id/calendar.ics route). Opening that URL is what
+// reliably triggers the device's native calendar app on both iPhone and
+// Android — a `cid:` reference to the attachment is not a supported way
+// to make an attachment clickable across email clients, so a real HTTPS
+// link is what actually works here. We still attach the .ics file too,
+// as a fallback for anyone who'd rather open it directly from the email.
+function addToCalendarButton(icsUrl) {
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+      <tr>
+        <td style="border-radius:999px; background-color:#C9A66B;">
+          <a href="${icsUrl}" style="display:inline-block; padding:13px 28px; font-family: Arial, sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#22314A; text-decoration:none; font-weight:bold;">
+            + Add to Calendar
+          </a>
+        </td>
+      </tr>
+    </table>
+    <p style="font-size:12px; line-height:1.6; color:rgba(34,49,74,0.5); margin:0 0 24px;">
+      Works with Apple Calendar and Google Calendar. If the button doesn't open your calendar app, the same event is also attached to this email as a file.
+    </p>`;
+}
+
 /**
- * Sends a branded confirmation email to the client. This is separate from
- * (and in addition to) the Google Calendar invite — Google's own invite
- * email can't be restyled with our branding, so this is the properly
- * branded confirmation the client actually sees front and centre.
+ * Sends the branded confirmation email to the client — the ONLY booking
+ * email they receive (we deliberately do not send Google's own calendar
+ * invite; see calendar.js, sendUpdates is set to 'none'). Includes an
+ * "Add to Calendar" button backed by an attached .ics file, which works
+ * on both iPhone and Android.
  */
-export async function sendClientConfirmationEmail({ to, name, treatment, startISO, timezone }) {
+export async function sendClientConfirmationEmail({ to, name, treatment, startISO, endISO, notes, timezone, bookingId }) {
   const resend = getResendClient();
   if (!resend) {
     console.log('RESEND_API_KEY not set — skipping client confirmation email.');
@@ -78,19 +104,35 @@ export async function sendClientConfirmationEmail({ to, name, treatment, startIS
   }
 
   const { date, time } = formatDateTime(startISO, timezone);
+  const icsFilename = 'la-derma-consultation.ics';
+  const organizerEmail = process.env.CLINIC_NOTIFY_EMAIL || 'bookings@laderma.com';
+
+  const ics = buildBookingICS({
+    uid: `${bookingId}@laderma`,
+    startISO,
+    endISO,
+    treatment,
+    name,
+    notes,
+    organizerEmail,
+  });
+
+  const apiBase = process.env.PUBLIC_API_BASE || `http://localhost:${process.env.PORT || 4000}`;
+  const icsUrl = `${apiBase}/api/bookings/${bookingId}/calendar.ics`;
 
   const bodyHtml = `
     <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:#22314A; margin:0 0 16px;">Your consultation is confirmed</h1>
     <p style="font-size:15px; line-height:1.6; color:rgba(34,49,74,0.78); margin:0 0 24px;">
       Hi ${name}, thank you for booking with La Derma. Here are your consultation details:
     </p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
       ${detailRow('Treatment', treatment)}
       ${detailRow('Date', date)}
       ${detailRow('Time', `${time} (${timezone})`)}
     </table>
+    ${addToCalendarButton(icsUrl)}
     <p style="font-size:14px; line-height:1.6; color:rgba(34,49,74,0.68); margin:0;">
-      A calendar invite has also been sent separately so you can add this to your own calendar. If you need to reschedule or have any questions before your visit, just reply to this email.
+      If you need to reschedule or have any questions before your visit, just reply to this email.
     </p>
   `;
 
@@ -102,6 +144,13 @@ export async function sendClientConfirmationEmail({ to, name, treatment, startIS
       preheader: `Your ${treatment} consultation on ${date} at ${time} is confirmed.`,
       bodyHtml,
     }),
+    attachments: [
+      {
+        filename: icsFilename,
+        content: Buffer.from(ics).toString('base64'),
+        contentType: 'text/calendar; charset=utf-8; method=PUBLISH',
+      },
+    ],
   });
 }
 
@@ -114,8 +163,12 @@ export async function sendClinicNotificationEmail({ name, email, phone, treatmen
   const resend = getResendClient();
   const notifyTo = process.env.CLINIC_NOTIFY_EMAIL;
 
-  if (!resend || !notifyTo) {
-    console.log('RESEND_API_KEY or CLINIC_NOTIFY_EMAIL not set — skipping clinic notification email.');
+  if (!resend) {
+    console.log('RESEND_API_KEY not set — skipping clinic notification email.');
+    return;
+  }
+  if (!notifyTo) {
+    console.log('CLINIC_NOTIFY_EMAIL not set — skipping clinic notification email.');
     return;
   }
 

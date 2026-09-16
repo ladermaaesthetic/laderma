@@ -7,7 +7,8 @@ import {
   isCalendarConnected,
   disconnectCalendar,
 } from './googleAuth.js';
-import { getAvailableSlots, createBooking, CONSULTATION_MINUTES, TIMEZONE } from './calendar.js';
+import { getAvailableSlots, createBooking, getBookingById, CONSULTATION_MINUTES, TIMEZONE } from './calendar.js';
+import { buildBookingICS } from './ics.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -170,6 +171,47 @@ app.post('/api/bookings', async (req, res) => {
     }
     console.error('Booking error:', err);
     res.status(500).json({ error: 'Could not create the booking. Please try again.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Serves the .ics calendar file for a specific booking, so the "Add to
+// Calendar" button in the confirmation email has a real, stable URL to
+// link to. Opening this URL is what triggers the device's native calendar
+// app (Apple Calendar, Google Calendar, Outlook) to import the event —
+// this is the standards-based approach that works the same way across
+// iPhone and Android, rather than needing separate platform-specific
+// "add to calendar" integrations.
+// ---------------------------------------------------------------------------
+app.get('/api/bookings/:id/calendar.ics', async (req, res) => {
+  try {
+    const event = await getBookingById(req.params.id);
+
+    // Pull the client's name/email back out of the event we stored it in,
+    // since we don't keep a separate database of bookings.
+    const attendee = (event.attendees || [])[0] || {};
+    const treatmentMatch = /Treatment focus: (.+)/.exec(event.description || '');
+    const notesMatch = /Notes: (.+)/.exec(event.description || '');
+
+    const ics = buildBookingICS({
+      uid: `${event.id}@laderma`,
+      startISO: event.start.dateTime,
+      endISO: event.end.dateTime,
+      treatment: treatmentMatch ? treatmentMatch[1] : 'Consultation',
+      name: attendee.displayName || '',
+      notes: notesMatch && notesMatch[1] !== '(none provided)' ? notesMatch[1] : '',
+      organizerEmail: process.env.CLINIC_NOTIFY_EMAIL || 'bookings@laderma.com',
+    });
+
+    res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="la-derma-consultation.ics"');
+    res.send(ics);
+  } catch (err) {
+    if (err.message === 'CALENDAR_NOT_CONNECTED') {
+      return res.status(503).send('Calendar is not connected.');
+    }
+    console.error('Failed to serve .ics for booking:', req.params.id, err);
+    res.status(404).send('Booking not found.');
   }
 });
 

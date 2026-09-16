@@ -205,13 +205,6 @@ export default function Booking() {
     <>
       <BookingIntro />
 
-      <div className="status-strip">
-        <div className="container">
-          <span><strong>{status.consultationMinutes} minute</strong> consultations</span>
-          <span>Time zone: <strong>{status.timezone}</strong></span>
-        </div>
-      </div>
-
       <section>
         <div className="container content-grid">
 

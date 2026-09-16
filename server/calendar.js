@@ -137,14 +137,23 @@ export async function createBooking({ startISO, name, email, phone, treatment, n
   const res = await calendar.events.insert({
     calendarId: CALENDAR_ID,
     requestBody: event,
-    sendUpdates: 'all', // still sends Google's own calendar invite, so the event lands on the client's calendar
+    sendUpdates: 'none', // the client gets our own branded email instead of Google's calendar invite
   });
 
-  // Fire off our own branded emails alongside Google's calendar invite.
+  // Fire off our own branded emails alongside the calendar write.
   // These failing shouldn't fail the booking itself — the calendar event
   // is the source of truth, so we log and continue rather than throwing.
   try {
-    await sendClientConfirmationEmail({ to: email, name, treatment, startISO, timezone: TIMEZONE });
+    await sendClientConfirmationEmail({
+      to: email,
+      name,
+      treatment,
+      startISO,
+      endISO: end.toISOString(),
+      notes,
+      timezone: TIMEZONE,
+      bookingId: res.data.id,
+    });
   } catch (err) {
     console.error('Failed to send client confirmation email:', err);
   }
@@ -154,6 +163,22 @@ export async function createBooking({ startISO, name, email, phone, treatment, n
     console.error('Failed to send clinic notification email:', err);
   }
 
+  return res.data;
+}
+
+/**
+ * Fetches a single previously-created booking event by its Google
+ * Calendar event ID — used to regenerate its .ics file on demand for the
+ * "Add to Calendar" link in the confirmation email, without us needing
+ * our own separate database of bookings.
+ */
+export async function getBookingById(eventId) {
+  const calendar = getCalendarClient();
+  if (!calendar) {
+    throw new Error('CALENDAR_NOT_CONNECTED');
+  }
+
+  const res = await calendar.events.get({ calendarId: CALENDAR_ID, eventId });
   return res.data;
 }
 
