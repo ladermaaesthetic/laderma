@@ -16,65 +16,15 @@
 
 .compare{
   position:relative;
-  aspect-ratio:4 / 3;
+  aspect-ratio:16 / 10;
   overflow:hidden;
   border-radius:1.6rem;
   border:1px solid var(--line);
-  background:linear-gradient(135deg, #E7DCC8, #C9B393);
+  background:var(--sage-bg);
 }
-.compare-half{
-  position:absolute;
-  top:0;
-  bottom:0;
-  display:flex;
-  align-items:flex-end;
-  padding:16px 18px;
-}
-.compare-half span{
-  font-family:'Manrope', sans-serif;
-  font-size:0.68rem;
-  text-transform:uppercase;
-  letter-spacing:0.24em;
-  color:#F6EFE2;
-  background:rgba(34,49,74,0.62);
-  padding:6px 14px;
-  border-radius:999px;
-}
-.compare-before{
-  left:0; right:50%;
-  background:linear-gradient(150deg, #D8C7A8, #B79868);
-}
-.compare-after{
-  left:50%; right:0;
-  background:linear-gradient(150deg, #F0E4CC, #D9C298);
-}
-.compare-divider{
-  position:absolute;
-  top:0; bottom:0;
-  left:50%;
-  width:2px;
-  background:#FBF6EF;
-  transform:translateX(-1px);
-}
-.compare-divider::after{
-  content:"";
-  position:absolute;
-  top:50%; left:50%;
-  width:36px; height:36px;
-  background:#FBF6EF;
-  border-radius:50%;
-  transform:translate(-50%,-50%);
-  box-shadow:0 6px 20px rgba(34,49,74,0.24);
-}
-.compare-divider::before{
-  content:"\2039 \203A";
-  position:absolute;
-  top:50%; left:50%;
-  transform:translate(-50%,-54%);
-  font-size:14px;
-  letter-spacing:6px;
-  color:var(--gold-deep);
-  z-index:2;
+.compare .fade-image{
+  object-fit:cover;
+  object-position:center;
 }
 
 .entry-body{display:flex; flex-direction:column;}

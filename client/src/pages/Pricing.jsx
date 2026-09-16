@@ -5,7 +5,9 @@ import './Pricing.css';
 
 export default function Pricing() {
   const [activeId, setActiveId] = useState(CATEGORIES[0].id);
+  const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
+  const [overflowing, setOverflowing] = useState(false);
   const scrollerRef = useRef(null);
   const headerRef = useRef(null);
   const [headerHeight, setHeaderHeight] = useState(89);
@@ -44,12 +46,16 @@ export default function Pricing() {
     return () => window.removeEventListener('scroll', onScroll);
   }, [headerHeight]);
 
-  // Track whether the pill row is scrolled to its end, to hide the fade hint.
+  // Track whether the pill row is scrolled to its start/end, and whether
+  // it overflows at all — used to show/hide the fade hints and arrow
+  // buttons appropriately (no arrows needed if everything already fits).
   useEffect(() => {
     const scroller = scrollerRef.current;
     if (!scroller) return;
     const update = () => {
+      setAtStart(scroller.scrollLeft <= 4);
       setAtEnd(scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 4);
+      setOverflowing(scroller.scrollWidth > scroller.clientWidth + 4);
     };
     scroller.addEventListener('scroll', update, { passive: true });
     window.addEventListener('resize', update);
@@ -59,6 +65,13 @@ export default function Pricing() {
       window.removeEventListener('resize', update);
     };
   }, []);
+
+  const scrollByAmount = (direction) => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const amount = scroller.clientWidth * 0.7 * direction;
+    scroller.scrollBy({ left: amount, behavior: 'smooth' });
+  };
 
   const jumpTo = (id) => {
     const el = document.getElementById(id);
@@ -79,7 +92,19 @@ export default function Pricing() {
       {/* Sticky category jump nav */}
       <div className="jumpnav-wrap" style={{ top: headerHeight }}>
         <div className="jumpnav-scroll">
-          {!atEnd && <div className="jumpnav-fade" />}
+          {overflowing && !atStart && (
+            <button
+              type="button"
+              className="jumpnav-arrow jumpnav-arrow-left"
+              aria-label="Scroll categories left"
+              onClick={() => scrollByAmount(-1)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+            </button>
+          )}
+          {overflowing && !atEnd && <div className="jumpnav-fade" />}
           <nav className="jumpnav" ref={scrollerRef} aria-label="Jump to treatment category">
             {CATEGORIES.map((cat) => (
               <a
@@ -92,6 +117,18 @@ export default function Pricing() {
               </a>
             ))}
           </nav>
+          {overflowing && !atEnd && (
+            <button
+              type="button"
+              className="jumpnav-arrow jumpnav-arrow-right"
+              aria-label="Scroll categories right"
+              onClick={() => scrollByAmount(1)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 

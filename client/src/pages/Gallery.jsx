@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import IntroHero from '../components/IntroHero';
+import FadeImage from '../components/FadeImage';
 import './Gallery.css';
 
 const ENTRIES = [
@@ -7,16 +8,19 @@ const ENTRIES = [
     num: '01',
     title: 'Spider Veins Laser Treatment',
     desc: 'Uses focused light to heat and destroy small, superficial red or blue vessels on the face and legs, causing them to collapse and fade, often within a few sessions. It is a non-invasive, quick procedure (15 to 30 mins) with minimal downtime.',
+    image: '/gallery/spider-veins.webp',
   },
   {
     num: '02',
     title: 'Endolift',
     desc: 'Endolift is a minimally invasive, non-surgical laser procedure that tightens skin and reduces localized fat by inserting hair-thin fibers under the skin to stimulate collagen and melt fat.',
+    image: '/gallery/endolift.webp',
   },
   {
     num: '03',
     title: 'Fillers and Anti Wrinkle',
     desc: "Anti wrinkle and dermal fillers are minimally invasive, non-surgical cosmetic injections. Botox relaxes muscles to smooth dynamic wrinkles (crow's feet, forehead lines), lasting 3 to 4 months. Fillers restore lost volume, plump lips, and soften static lines (nasolabial folds), with results lasting 6 to 18+ months. Both can be combined for comprehensive rejuvenation.",
+    image: '/gallery/fillers-anti-wrinkle.webp',
   },
 ];
 
@@ -35,9 +39,7 @@ export default function Gallery() {
           {ENTRIES.map((entry) => (
             <article className="entry" key={entry.num}>
               <div className="compare">
-                <div className="compare-half compare-before"><span>Before</span></div>
-                <div className="compare-half compare-after"><span>After</span></div>
-                <div className="compare-divider" />
+                <FadeImage src={entry.image} alt={`Before and after results of ${entry.title}`} fill />
               </div>
               <div className="entry-body">
                 <p className="entry-num">{entry.num}</p>
