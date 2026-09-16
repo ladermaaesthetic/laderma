@@ -1,0 +1,218 @@
+export const CATEGORIES = [
+  {
+    id: 'free-consultations',
+    title: 'Free Consultations',
+    desc: 'Complimentary first step appointments.',
+    items: [
+      { name: 'Facial Analysis', price: 'Free' },
+      { name: 'Face and Body Tightening Endolift Consultation', price: 'Free' },
+      { name: 'Hair Loss Consultation', price: 'Free' },
+    ],
+  },
+  {
+    id: 'paid-consultations',
+    title: 'Paid Consultations',
+    desc: 'Specialist consultation services.',
+    items: [
+      { name: 'Weight Management Consultation', price: '£600' },
+    ],
+  },
+  {
+    id: 'diode-laser',
+    title: '4 Wavelength Diode Laser',
+    desc: 'Laser pricing by treatment area.',
+    items: [
+      { name: 'Half Face', price: '£30' },
+      { name: 'Full Face and Neck', price: '£50' },
+      { name: 'Full Neck', price: '£20' },
+      { name: 'Forehead', price: '£20' },
+      { name: 'Full Cheeks', price: '£15' },
+      { name: 'Upper Lips', price: '£15' },
+      { name: 'Chin', price: '£20' },
+      { name: 'Chin & Lips', price: '£20' },
+      { name: 'Side of Face', price: '£20' },
+      { name: 'Back of Neck', price: '£20' },
+      { name: 'Ears', price: '£15' },
+      { name: 'Nose', price: '£15' },
+      { name: 'Hand Fingers', price: '£20' },
+      { name: 'Shoulder', price: '£25' },
+      { name: 'Full Arms', price: '£55' },
+      { name: 'Chest', price: '£40' },
+      { name: 'Abdomen', price: '£50' },
+      { name: 'Full Bikini', price: '£50' },
+      { name: 'Lower Legs', price: '£40' },
+      { name: 'Leg Tops', price: '£55' },
+      { name: 'Full Legs', price: '£80' },
+      { name: 'Toes', price: '£10' },
+      { name: 'Full Back', price: '£90' },
+      { name: 'Upper Back', price: '£40' },
+      { name: 'Lower Back', price: '£40' },
+      { name: 'Under Arms', price: '£25' },
+    ],
+  },
+  {
+    id: 'microneedling',
+    title: 'Medical Grade Microneedling',
+    desc: 'Face, hands, neck, or décolletage pricing.',
+    items: [
+      { name: 'Bronze: Microneedling', price: '£100' },
+      { name: 'Silver: Microneedling + Chemical Peel', price: '£175' },
+      { name: 'Gold: Microneedling + PRP', price: '£200' },
+      { name: 'Diamond: Microneedling + Exosomes', price: '£200' },
+    ],
+  },
+  {
+    id: 'anti-wrinkle',
+    title: 'Anti Wrinkle and Botox Treatments',
+    desc: 'Targeted anti wrinkle pricing across facial and specialist areas.',
+    items: [
+      { name: 'Full Face', price: '£300' },
+      { name: 'Upper Face (3 Areas)', price: '£180' },
+      { name: 'Upper Face (3 Areas) + One Area', price: '£200' },
+      { name: 'One Area', price: '£80' },
+      { name: 'Nose Botox (Lifting, Slimming & Lines)', price: '£100' },
+      { name: 'Lower Facelift Botox', price: '£150' },
+      { name: 'Botox Neck Lift', price: '£225' },
+      { name: 'Teeth Grinding / Face Slimming', price: '£200' },
+      { name: 'Excessive Sweating Botox', price: '£350' },
+      { name: 'Shoulder & Neck Pain Botox', price: '£350' },
+      { name: 'Anti Wrinkle Treatment: One Area', price: '£80' },
+      { name: 'Anti Wrinkle Treatment: 3 Areas', price: '£130' },
+    ],
+  },
+  {
+    id: 'skin-boosters',
+    title: 'Skin Boosters and Under Eye Treatments',
+    desc: 'Session options taken from the provided price list.',
+    items: [
+      { name: 'Jalupro: 1 Session', price: '£150' },
+      { name: 'Jalupro: 3 Sessions', price: '£350' },
+      { name: 'Lumi Eyes: 1 Session', price: '£100' },
+      { name: 'Lumi Eyes: 3 Sessions', price: '£250' },
+      { name: 'Sunekos: 1 Session', price: '£175' },
+      { name: 'Sunekos: 3 Sessions', price: '£475' },
+      { name: 'Profhilo: 1 Session', price: '£175' },
+      { name: 'Profhilo: 2 Sessions', price: '£300' },
+    ],
+  },
+  {
+    id: 'fillers',
+    title: 'Fillers and Injectable Boosters',
+    desc: 'Filler and vitamin injection pricing.',
+    items: [
+      { name: 'Lips Filler 1 ml', price: '£150' },
+      { name: 'Jaw Filler', price: '£150' },
+      { name: 'Cheeks Filler', price: '£150' },
+      { name: 'Smile Line Filler', price: '£150' },
+      { name: 'Sculptra', price: '£300' },
+      { name: 'Radiesse', price: '£250' },
+      { name: 'B12 Injection', price: '£25' },
+      { name: 'Biotin Injection', price: '£30' },
+      { name: 'B Complex and Vitamin C Injection', price: '£50' },
+      { name: 'Chemical Peel', price: '£65' },
+      { name: 'Vampire Facial Treatment', price: '£100' },
+    ],
+  },
+  {
+    id: 'body-treatments',
+    title: 'Fat Dissolving and Body Treatments',
+    desc: 'Body contouring and targeted body treatment pricing.',
+    items: [
+      { name: 'Fat Dissolving Injection', price: '£150' },
+      { name: 'Microneedling (Cellulite/Stretch Marks)', price: '£150' },
+      { name: 'Leg Spider Vein Removal', price: '£300' },
+      { name: 'PRP for Cellulite Treatment', price: '£75' },
+      { name: 'PRP for Stretch Marks & Scars', price: '£250' },
+      { name: 'Fat Freeze or Lipolysis', price: '£150' },
+      { name: 'RF for Tightening and Lifting', price: '£75' },
+      { name: 'Other Body Areas', price: '£300 to £1,000' },
+    ],
+  },
+  {
+    id: 'wellness',
+    title: 'Wellness, Hair Restoration, and Specialist Treatments',
+    desc: 'Wellness injections, scalp work, and specialist treatment pricing.',
+    items: [
+      { name: 'Vitamin B12 Jab - Energy Booster', price: '£25' },
+      { name: 'Vitamin C Jab - Immune Booster', price: '£25' },
+      { name: 'Vitamin D Jab - Mood Booster', price: '£25' },
+      { name: 'Biotin Injection for Hair Health', price: '£25' },
+      { name: 'Bronze: 1 Meso', price: '£100' },
+      { name: 'Silver: PRP + Meso', price: '£125' },
+      { name: 'Gold: PRP + Microneedling + Exosomes', price: '£150' },
+      { name: 'Diamond: PRP + Microneedling + Exosomes + Biotin Injection', price: '£200' },
+      { name: 'Upper & Lower Eyelids (Periorbital Area)', price: '£250' },
+      { name: 'Cheeks', price: '£200' },
+      { name: 'Jawline', price: '£200' },
+      { name: 'Neck', price: '£300' },
+      { name: 'Full Face & Neck', price: '£500' },
+      { name: 'Vaginal Tightening & Urinary Incontinence Treatment', price: '£300' },
+      { name: 'Fungal Nail Infection Treatment (Onychomycosis)', price: '£200' },
+    ],
+  },
+];
+
+export const PROCEDURES = [
+  {
+    title: 'Anti-Wrinkle (Botox)',
+    paragraphs: [
+      'Anti-Wrinkle is a remarkable solution for addressing the signs of aging on your skin. This injectable treatment effectively targets aging concerns such as wrinkles, sagging skin, laugh lines, and facial expression wrinkles.',
+      'By precisely injecting small amounts into specific muscle areas, Anti-Wrinkle gently diminishes fine lines while naturally relaxing muscles. The result? Enhanced skin youthfulness and firmness, with a noticeable reduction in wrinkles.',
+    ],
+  },
+  {
+    title: 'Profhilo',
+    paragraphs: [
+      "Experience the transformative power of Profhilo, a groundbreaking skin bio-remodeling treatment. It stimulates your skin's elastin and collagen, resulting in a lifted and radiant complexion.",
+    ],
+  },
+  {
+    title: 'Spider Vein Removal',
+    paragraphs: [
+      'Sclerotherapy is a minimally invasive treatment that involves injecting a solution into spider veins, causing them to collapse and fade away. This effective procedure improves the appearance of the legs by reducing visible veins and restoring smoother skin.',
+    ],
+  },
+  {
+    title: 'Endolift',
+    paragraphs: [
+      'Endolift is a minimally invasive, non-surgical laser procedure designed to tighten skin, promote collagen production, and melt small pockets of fat, primarily on the face, neck, and jawline. It uses a hair-thin fiber optic cable inserted under the skin, requiring no incisions, offering minimal downtime.',
+    ],
+  },
+  {
+    title: 'Platelet-Rich Plasma (PRP)',
+    paragraphs: [
+      "Platelet-Rich Plasma (PRP) therapy is a minimally invasive, autologous procedure that uses a patient's own concentrated blood platelets to accelerate healing in injured tendons, ligaments, joints, or skin.",
+    ],
+    subsections: [
+      { label: 'Hair Loss:', text: "PRP is injected into the scalp to stimulate hair follicles, promoting hair regrowth and improving the thickness and density of hair by encouraging the body's natural healing process." },
+      { label: 'Facial Rejuvenation:', text: 'PRP is applied to the face to stimulate collagen production and rejuvenate the skin, helping to reduce fine lines, wrinkles, and improve overall skin tone and texture.' },
+      { label: 'Under Eye Rejuvenation:', text: 'PRP is used to treat dark circles, puffiness, and fine lines around the under-eye area by encouraging cell regeneration and boosting collagen production, restoring a refreshed appearance.' },
+    ],
+  },
+  {
+    title: 'Microneedling',
+    paragraphs: [
+      "Microneedling is a minimally invasive cosmetic procedure that uses fine needles to create tiny punctures in the skin, triggering the body's natural wound-healing process. This stimulates collagen and elastin production, which improves skin texture, reduces wrinkles, scars, acne pitting, and stretch marks, and can treat hair loss.",
+    ],
+  },
+  {
+    title: 'Vitamin Treatments',
+    subsections: [
+      { label: 'Vitamin B12:', text: 'Boosts energy, supports brain function, and improves mood.' },
+      { label: 'Vitamin D:', text: 'Strengthens bones, supports immune health, and enhances mood.' },
+      { label: 'Vitamin C:', text: 'Boosts immunity, improves skin health, and supports collagen production.' },
+    ],
+  },
+  {
+    title: 'Weight Loss Consultation - GLP-1 Therapy',
+    paragraphs: [
+      'A tailored consultation to assess your suitability for GLP-1 treatments, including Mounjaro, Ozempic, and Wegovy. These prescription medications help regulate appetite, improve metabolism, and support sustainable weight loss. The consultation includes a full health assessment, personalised treatment plan, and ongoing support to help you achieve your weight loss goals safely and effectively.',
+    ],
+  },
+  {
+    title: 'Dermal Fillers',
+    paragraphs: [
+      'Dermal fillers are a popular choice for those seeking facial contouring through a safe, non-invasive approach. Crafted from natural substances, these fillers are skillfully injected to add volume, reduce wrinkles, or enhance specific features, resulting in plump, youthful skin. At La Derma Aesthetic Clinic, we believe that every face tells a unique story, and our dermal filler treatments help you shape that narrative.',
+    ],
+  },
+];

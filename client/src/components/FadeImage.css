@@ -1,0 +1,50 @@
+.fade-image-wrap{
+  position:relative;
+  width:100%;
+}
+.fade-image{
+  display:block;
+  width:100%;
+  height:auto;
+  min-height:1px;
+  opacity:0;
+  background:var(--sage-bg);
+  transition:opacity 0.5s ease;
+}
+.fade-image.loaded{
+  opacity:1;
+}
+.fade-image-error{
+  min-height:160px;
+}
+.fade-image-error .fade-image{
+  opacity:0;
+  height:100%;
+  position:absolute;
+  inset:0;
+}
+.fade-image-fallback{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:inherit;
+  background:var(--sage-bg);
+  color:var(--navy-ink-ghost);
+}
+
+/* Contexts where the image needs to FILL a fixed-size container (a
+   circular avatar, a background photo) opt in explicitly via this
+   modifier class, applied by the parent page's CSS. */
+.fade-image-wrap.fade-image-fill{
+  height:100%;
+}
+.fade-image-wrap.fade-image-fill .fade-image{
+  height:100%;
+  object-fit:cover;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .fade-image{transition:none;}
+}

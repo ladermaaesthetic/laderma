@@ -1,0 +1,75 @@
+.site-footer{
+  border-top:1px solid var(--line);
+  background:var(--surface-2);
+}
+.footer-inner{
+  display:flex;
+  flex-direction:column;
+  gap:32px;
+  padding:48px 0 32px;
+}
+.footer-brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.footer-brand-logo{
+  display:flex;
+  height:44px;
+  width:44px;
+  overflow:hidden;
+  border-radius:50%;
+  border:1px solid var(--line);
+  background:var(--white);
+  padding:3px;
+  flex-shrink:0;
+}
+.footer-brand-logo img{
+  height:100%;
+  width:100%;
+  border-radius:50%;
+  object-fit:cover;
+}
+.footer-brand-eyebrow{
+  font-size:0.64rem;
+  text-transform:uppercase;
+  letter-spacing:0.3em;
+  color:var(--gold-deep);
+}
+.footer-brand-name{
+  margin-top:2px;
+  font-family:'Cormorant Garamond', serif;
+  font-size:1.25rem;
+  color:var(--navy-ink);
+}
+
+.footer-nav-block{}
+.footer-label{
+  font-size:0.68rem;
+  text-transform:uppercase;
+  letter-spacing:0.36em;
+  color:var(--navy-ink-ghost);
+}
+.footer-nav{
+  margin-top:16px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.footer-nav a{
+  font-size:0.85rem;
+  text-transform:uppercase;
+  letter-spacing:0.18em;
+  color:var(--navy-ink-soft);
+  transition:color .3s ease;
+}
+.footer-nav a:hover{color:var(--gold-deep);}
+
+.footer-bottom{
+  border-top:1px solid var(--line);
+  padding:20px 0;
+}
+.footer-bottom p{
+  font-size:0.78rem;
+  color:var(--navy-ink-ghost);
+}

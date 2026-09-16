@@ -1,0 +1,157 @@
+:root{
+  /* Navy — primary ink. Signals trust, competence, medical credibility.
+     Used for all body text and headings so the site reads as authoritative
+     first, decorative second. */
+  --navy-ink:#22314A;
+  --navy-ink-soft: rgba(34,49,74,0.78);
+  --navy-ink-mid: rgba(34,49,74,0.68);
+  --navy-ink-faint: rgba(34,49,74,0.56);
+  --navy-ink-ghost: rgba(34,49,74,0.46);
+  --navy-panel: rgba(58,80,112,0.95);
+
+  /* Gold — premium accent, used sparingly (CTAs, small labels, dividers)
+     rather than as a dominant background colour. Slightly desaturated
+     from a "costume jewellery" gold toward a warmer brass tone, which
+     reads as considered/refined rather than flashy. */
+  --gold: #BE9861;
+  --gold-soft: #CDAB79;
+  --gold-deep: #9C7A46;
+
+  /* Sage — secondary accent. Muted, desaturated green reads as calm,
+     natural, and healthy without tipping into a cold clinical blue.
+     Used for success states, subtle highlights, and to give the palette
+     somewhere to rest besides gold, so gold keeps its impact as an accent
+     rather than becoming the default colour of everything interactive. */
+  --sage: #7C9484;
+  --sage-soft: #93A99B;
+  --sage-deep: #5F7768;
+  --sage-bg: #EAEFEA;
+
+  --line: rgba(156,122,70,0.15);
+  --cream-bg: #FAF6EF;
+  --white: #FFFFFF;
+
+  /* Surface system — three deliberate translucency levels instead of a
+     dozen one-off rgba values, so every card/panel across the site reads
+     as part of one consistent material rather than accumulated tweaks.
+     - surface-1: the most common card/panel background
+     - surface-2: slightly more opaque, for content that should feel
+       a touch more grounded (e.g. rows nested inside a surface-1 card)
+     - surface-3: near-solid, for elements that need strong contrast
+       against a busy or photographic background */
+  --surface-1: rgba(255,255,255,0.72);
+  --surface-2: rgba(255,255,255,0.85);
+  --surface-3: rgba(255,255,255,0.95);
+  --card-bg: var(--surface-1);
+  --row-bg: var(--surface-2);
+
+  /* Shadow system — one soft, warm-toned shadow used at two sizes,
+     instead of shadows with independently-tuned colour/blur per
+     component. Keeps elevation consistent across the whole site. */
+  --shadow-sm: 0 12px 30px rgba(34,49,74,0.08);
+  --shadow-md: 0 24px 60px rgba(34,49,74,0.1);
+  --shadow-lg: 0 32px 80px rgba(34,49,74,0.14);
+
+  --amber: #9C7A2E;
+  --amber-bg: #F3ECD9;
+  --green: #4A7A5E;
+  --green-bg: #E5F0E8;
+  --red: #B4463A;
+  --red-bg: #F7E9E7;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--cream-bg);
+  color:var(--navy-ink);
+  font-family:'Manrope', sans-serif;
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{
+  font-family:'Cormorant Garamond', serif;
+  font-weight:600;
+  line-height:1.1;
+  margin:0;
+  color:var(--navy-ink);
+}
+p{margin:0;}
+a{color:inherit;text-decoration:none;}
+img{max-width:100%;display:block;}
+button{font-family:inherit;}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible{
+  outline:2px solid var(--gold-deep);
+  outline-offset:2px;
+}
+
+.container{
+  max-width:1180px;
+  margin:0 auto;
+  padding:0 24px;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  white-space:nowrap;
+  font-family:'Manrope', sans-serif;
+  font-weight:500;
+  border-radius:999px;
+  border:none;
+  cursor:pointer;
+  transition:all .3s ease;
+}
+.btn-gold{
+  background:var(--gold);
+  color:var(--navy-ink);
+  padding:10px 24px;
+  font-size:0.72rem;
+  text-transform:uppercase;
+  letter-spacing:0.28em;
+}
+.btn-gold:hover{background:var(--gold-soft);}
+.btn-gold:disabled{opacity:.55; cursor:not-allowed;}
+.btn-gold-lg{padding:18px 28px;}
+.btn-outline{
+  background:var(--surface-1);
+  color:var(--navy-ink);
+  border:1px solid var(--line);
+  padding:14px 24px;
+  font-size:0.72rem;
+  text-transform:uppercase;
+  letter-spacing:0.28em;
+}
+.btn-outline:hover{background:var(--white);}
+
+section{padding:80px 0;}
+@media (max-width: 899px){
+  section{padding:56px 0;}
+}
+
+.section-eyebrow{
+  font-size:0.68rem;
+  text-transform:uppercase;
+  letter-spacing:0.42em;
+  color:var(--gold-deep);
+}
+.section-title{
+  margin-top:12px;
+  font-size:clamp(2rem, 4.4vw, 3rem);
+  line-height:1.15;
+}
+.section-desc{
+  margin-top:16px;
+  font-size:1rem;
+  line-height:1.8;
+  color:var(--navy-ink-mid);
+}
