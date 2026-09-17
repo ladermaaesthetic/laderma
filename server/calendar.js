@@ -156,6 +156,14 @@ export async function createBooking({ startISO, name, email, phone, treatment, n
     });
   } catch (err) {
     console.error('Failed to send client confirmation email:', err);
+    if (err?.name === 'validation_error' || /You can only send testing emails/i.test(err?.message || '')) {
+      console.error(
+        'This looks like the Resend free-tier restriction: without a verified ' +
+        'domain, you can only send TO the email address your Resend account ' +
+        'is registered under — not to real clients. Verify a domain in Resend ' +
+        'to lift this, see server/.env.example for details.'
+      );
+    }
   }
   try {
     await sendClinicNotificationEmail({ name, email, phone, treatment, notes, startISO, timezone: TIMEZONE });

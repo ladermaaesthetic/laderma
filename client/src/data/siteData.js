@@ -20,8 +20,6 @@ export const IMAGES = {
     'https://d2xsxph8kpxj0f.cloudfront.net/310519663448677533/D7fnEQUJWHBXWGYDWnFdAo/WhatsAppImage2026-04-15at13.49.17(1)_177f5674.jpeg',
   bookingPhoto:
     'https://d2xsxph8kpxj0f.cloudfront.net/310519663448677533/D7fnEQUJWHBXWGYDWnFdAo/home-last-photo-replacement_2d7bfa36.jpeg',
-  founderPhoto:
-    'https://d2xsxph8kpxj0f.cloudfront.net/310519663448677533/D7fnEQUJWHBXWGYDWnFdAo/founder-photo_9a1c7d3e.jpeg',
 };
 
 export const TREATMENT_OPTIONS = [

@@ -156,14 +156,14 @@ export const PROCEDURES = [
   {
     title: 'Anti-Wrinkle (Botox)',
     paragraphs: [
-      'Anti-Wrinkle is a remarkable solution for addressing the signs of aging on your skin. This injectable treatment effectively targets aging concerns such as wrinkles, sagging skin, laugh lines, and facial expression wrinkles.',
+      'Anti-Wrinkle is a remarkable solution for addressing the signs of ageing on your skin. This injectable treatment effectively targets ageing concerns such as wrinkles, sagging skin, laugh lines, and facial expression wrinkles.',
       'By precisely injecting small amounts into specific muscle areas, Anti-Wrinkle gently diminishes fine lines while naturally relaxing muscles. The result? Enhanced skin youthfulness and firmness, with a noticeable reduction in wrinkles.',
     ],
   },
   {
     title: 'Profhilo',
     paragraphs: [
-      "Experience the transformative power of Profhilo, a groundbreaking skin bio-remodeling treatment. It stimulates your skin's elastin and collagen, resulting in a lifted and radiant complexion.",
+      "Experience the transformative power of Profhilo, a groundbreaking skin bio-remodelling treatment. It stimulates your skin's elastin and collagen, resulting in a lifted and radiant complexion.",
     ],
   },
   {
@@ -175,7 +175,7 @@ export const PROCEDURES = [
   {
     title: 'Endolift',
     paragraphs: [
-      'Endolift is a minimally invasive, non-surgical laser procedure designed to tighten skin, promote collagen production, and melt small pockets of fat, primarily on the face, neck, and jawline. It uses a hair-thin fiber optic cable inserted under the skin, requiring no incisions, offering minimal downtime.',
+      'Endolift is a minimally invasive, non-surgical laser procedure designed to tighten skin, promote collagen production, and melt small pockets of fat, primarily on the face, neck, and jawline. It uses a hair-thin fibre optic cable inserted under the skin, requiring no incisions, offering minimal downtime.',
     ],
   },
   {
@@ -204,7 +204,7 @@ export const PROCEDURES = [
     ],
   },
   {
-    title: 'Weight Loss Consultation - GLP-1 Therapy',
+    title: 'Weight Loss Consultation — GLP-1 Therapy',
     paragraphs: [
       'A tailored consultation to assess your suitability for GLP-1 treatments, including Mounjaro, Ozempic, and Wegovy. These prescription medications help regulate appetite, improve metabolism, and support sustainable weight loss. The consultation includes a full health assessment, personalised treatment plan, and ongoing support to help you achieve your weight loss goals safely and effectively.',
     ],
@@ -212,7 +212,7 @@ export const PROCEDURES = [
   {
     title: 'Dermal Fillers',
     paragraphs: [
-      'Dermal fillers are a popular choice for those seeking facial contouring through a safe, non-invasive approach. Crafted from natural substances, these fillers are skillfully injected to add volume, reduce wrinkles, or enhance specific features, resulting in plump, youthful skin. At La Derma Aesthetic Clinic, we believe that every face tells a unique story, and our dermal filler treatments help you shape that narrative.',
+      'Dermal fillers are a popular choice for those seeking facial contouring through a safe, non-invasive approach. Crafted from natural substances, these fillers are skilfully injected to add volume, reduce wrinkles, or enhance specific features, resulting in plump, youthful skin. At La Derma Aesthetic Clinic, we believe that every face tells a unique story, and our dermal filler treatments help you shape that narrative.',
     ],
   },
 ];

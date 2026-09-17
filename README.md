@@ -121,10 +121,12 @@ real availability.
 
 ## 5. Set up branded email notifications (optional)
 
-By default, the only email a client gets is Google's own calendar invite,
-which can't be restyled with your branding. To also send a properly
-branded confirmation email to the client, and a notification email to the
-clinic whenever someone books:
+By default, no confirmation email is sent to the client and no
+notification is sent to the clinic when someone books — the appointment
+is only added to your connected Google Calendar. To send a properly
+branded confirmation email to the client (with an Add to Calendar
+button/attachment), and a notification email to the clinic whenever
+someone books:
 
 1. Sign up free at [resend.com](https://resend.com)
 2. Create an API key under **API Keys** in their dashboard
@@ -132,17 +134,36 @@ clinic whenever someone books:
    ```
    RESEND_API_KEY=re_your_api_key_here
    CLINIC_NOTIFY_EMAIL=your-clinic-inbox@example.com
+   PUBLIC_API_BASE=http://localhost:4000
    ```
 4. Restart the server
 
-This works immediately using Resend's shared `onboarding@resend.dev`
-sending address. To send from your own address (e.g.
-`bookings@laderma.com`) once you have a domain, verify that domain in
-Resend's dashboard, then set `CLINIC_FROM_EMAIL=La Derma
-<bookings@laderma.com>` in your `.env`.
-
 If these variables aren't set, bookings still work exactly as before —
-the branded emails are simply skipped, with a note in the server log.
+the emails are simply skipped, with a note in the server log.
+
+### Important: Resend's free-tier sending restriction
+
+**Without a verified domain, Resend only lets you send TO the email
+address your Resend account itself is registered under** — not to real
+clients. This means, until you verify a domain:
+
+- The **clinic notification** email will only actually arrive if
+  `CLINIC_NOTIFY_EMAIL` is set to the same address you signed up to
+  Resend with.
+- The **client confirmation** email will fail for any real client whose
+  email differs from that address — you'll see this in the server logs
+  as a `validation_error` from Resend.
+
+This is a genuine platform limit, not a bug — bookings themselves still
+succeed and still land on the calendar even when these emails fail; the
+booking flow does not depend on email sending working.
+
+To send properly to real clients, you need to verify your own domain in
+Resend's dashboard (**Domains → Add Domain**, then add the DNS records it
+gives you at your domain registrar). Once verified, you can send to any
+address and from a real address of your own, e.g.
+`CLINIC_FROM_EMAIL=La Derma <bookings@laderma.com>`, instead of the
+default shared `onboarding@resend.dev` sender.
 
 ## 6. Using it day to day
 

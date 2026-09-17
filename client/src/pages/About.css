@@ -34,23 +34,6 @@
   padding:64px 0;
   border-bottom:1px solid var(--line);
 }
-.founder-photo{
-  width:180px;
-  height:180px;
-  border-radius:50%;
-  overflow:hidden;
-  border:1px solid var(--line);
-  background:var(--white);
-  padding:6px;
-  box-shadow:var(--shadow-md);
-  flex-shrink:0;
-}
-.founder-photo img{
-  width:100%;
-  height:100%;
-  border-radius:50%;
-  object-fit:cover;
-}
 .founder-eyebrow{
   font-size:0.68rem;
   text-transform:uppercase;
@@ -218,7 +201,7 @@
   .philosophy-grid{grid-template-columns:1fr 1fr;}
 }
 @media (min-width: 900px){
-  .founder-intro{flex-direction:row; text-align:left; padding:80px 0;}
+  .founder-intro{padding:80px 0;}
   .story-grid{grid-template-columns:1.1fr 0.9fr;}
   .advanced-grid{grid-template-columns:1.1fr 0.9fr;}
 }

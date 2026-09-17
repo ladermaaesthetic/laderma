@@ -1,7 +1,5 @@
 import { NavLink } from 'react-router-dom';
 import IntroHero from '../components/IntroHero';
-import FadeImage from '../components/FadeImage';
-import { IMAGES } from '../data/siteData';
 import './About.css';
 
 const PHILOSOPHY = [
@@ -12,7 +10,7 @@ const PHILOSOPHY = [
 ];
 
 const STORY_POINTS = [
-  'Bachelor Science background with over 4 years of experience',
+  'Bachelor of Science background with over 4 years of experience',
   'Advanced treatments including PRP, Exosomes, Mesotherapy, and Endolift',
   'Natural, refined, and long lasting results over trend driven overcorrection',
   "Personalised treatment plans tailored to each client's skin and goals",
@@ -59,9 +57,6 @@ export default function About() {
       {/* Founder intro */}
       <div className="container">
         <div className="founder-intro">
-          <div className="founder-photo">
-            <FadeImage src={IMAGES.founderPhoto} alt="Dalia Shahrour, founder of La Derma Aesthetic Clinic" fill />
-          </div>
           <div>
             <p className="founder-eyebrow">Meet the founder</p>
             <h2 className="founder-name">Dalia Shahrour</h2>
@@ -110,7 +105,7 @@ export default function About() {
 
           <div className="story-grid">
             <div className="story-body">
-              <p>Dalia Shahrour founded La Derma with a clear vision: to offer premium aesthetic care grounded in science, precision, and personalised attention. Her background in Bachelor Science gives every treatment plan a strong understanding of skin biology, treatment safety, and the importance of long term skin health.</p>
+              <p>Dalia Shahrour founded La Derma with a clear vision: to offer premium aesthetic care grounded in science, precision, and personalised attention. Her Bachelor of Science background gives every treatment plan a strong understanding of skin biology, treatment safety, and the importance of long term skin health.</p>
               <p>With more than four years of hands on experience in aesthetics, Dalia approaches each consultation with care, honesty, and a commitment to refined outcomes. Her focus is not on over treatment, but on helping every client achieve natural looking improvements that feel elegant, balanced, and confidence boosting.</p>
             </div>
             <ul className="story-list">

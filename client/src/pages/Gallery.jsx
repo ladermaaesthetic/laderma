@@ -13,7 +13,7 @@ const ENTRIES = [
   {
     num: '02',
     title: 'Endolift',
-    desc: 'Endolift is a minimally invasive, non-surgical laser procedure that tightens skin and reduces localized fat by inserting hair-thin fibers under the skin to stimulate collagen and melt fat.',
+    desc: 'Endolift is a minimally invasive, non-surgical laser procedure that tightens skin and reduces localised fat by inserting hair-thin fibres under the skin to stimulate collagen and melt fat.',
     image: '/gallery/endolift.webp',
   },
   {
