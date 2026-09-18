@@ -127,34 +127,39 @@ is only added to your connected Google Calendar. Two separate email
 providers are used, for a genuine reason explained below:
 
 - **Client confirmation email** (branded, with an Add to Calendar
-  button/attachment) — sent via **Gmail SMTP**
+  button/attachment) — sent via **Brevo**
 - **Clinic new-booking notification** — sent via **Resend**
 
 ### Why two providers
 
 Resend's free tier only allows sending **to the email address your
 Resend account itself is registered under**, until you verify a domain —
-it cannot email real clients on an unverified account. Gmail has no such
-restriction, so it's used for the client-facing email instead. The
-clinic notification stays on Resend because it only ever needs to reach
-your own inbox, which the free tier already allows.
+it cannot email real clients on an unverified account. Raw SMTP (e.g.
+Gmail) was tried as an alternative, but Render's free tier blocks
+outbound SMTP connections entirely, so that path fails with a connection
+timeout regardless of how correct the credentials are. Brevo is a
+genuine HTTP API (so it isn't blocked by Render) and its free tier does
+not require domain verification to send to real recipients, so it's
+used for the client-facing email instead. The clinic notification stays
+on Resend because it only ever needs to reach your own inbox, which its
+free tier already allows.
 
 Once you verify a domain in Resend, you can move the client email over
 to Resend as well if you'd rather use one provider for everything — see
 the note in `server/.env.example`.
 
-### Setting up the client confirmation email (Gmail)
+### Setting up the client confirmation email (Brevo)
 
-1. Go to <https://myaccount.google.com/security> and turn on **2-Step
-   Verification** if it isn't already on (required for the next step)
-2. Go to <https://myaccount.google.com/apppasswords> and create a new
-   app password
-3. Copy the 16-character password it gives you — **not** your normal
-   Gmail password
+1. Sign up free at [brevo.com](https://www.brevo.com)
+2. Go to **Settings → SMTP & API → API Keys**, generate a new API key
+3. Go to **Senders, Domains & Dedicated IPs → Senders**, and add/verify a
+   sender email address — Brevo emails you a one-click confirmation
+   link, which is much lighter than a full domain verification.
+   `laderma.testing@gmail.com` works fine as a sender here.
 4. In `server/.env`, add:
    ```
-   GMAIL_USER=laderma.testing@gmail.com
-   GMAIL_APP_PASSWORD=your16charapppassword
+   BREVO_API_KEY=xkeysib-your-api-key-here
+   BREVO_SENDER_EMAIL=laderma.testing@gmail.com
    PUBLIC_API_BASE=http://localhost:4000
    ```
 
@@ -186,8 +191,9 @@ can:
   clinic notification from a real address instead of Resend's shared
   `onboarding@resend.dev`
 - Optionally switch the client confirmation email over to Resend too,
-  since domain verification removes the restriction that made Gmail
-  necessary in the first place
+  since domain verification removes the restriction that made Brevo
+  necessary in the first place — or verify the domain directly in Brevo
+  instead for better deliverability/branding there
 
 ## 6. Using it day to day
 

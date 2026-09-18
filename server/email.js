@@ -1,5 +1,5 @@
 import { Resend } from 'resend';
-import nodemailer from 'nodemailer';
+import { BrevoClient } from '@getbrevo/brevo';
 import { buildBookingICS } from './ics.js';
 
 const LOGO_URL =
@@ -10,22 +10,17 @@ function getResendClient() {
   return new Resend(process.env.RESEND_API_KEY);
 }
 
-// Gmail SMTP has no "can only send to your own address" restriction the
-// way an unverified Resend account does, so this is what actually sends
-// the client-facing confirmation email until a domain is verified in
-// Resend. Requires a Gmail App Password (not the regular account
-// password) — see server/.env.example for how to generate one.
-let gmailTransporter = null;
-function getGmailTransporter() {
-  if (gmailTransporter) return gmailTransporter;
-  const { GMAIL_USER, GMAIL_APP_PASSWORD } = process.env;
-  if (!GMAIL_USER || !GMAIL_APP_PASSWORD) return null;
-
-  gmailTransporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
-  });
-  return gmailTransporter;
+// Brevo has a genuine HTTP API (unlike raw SMTP, which is blocked outbound
+// on Render's free tier — that's why Gmail SMTP didn't work) and its free
+// tier does not require a verified sending domain before you can email
+// real recipients, unlike Resend's free tier. This is what actually
+// reaches real clients until a domain is verified in Resend.
+let brevoClient = null;
+function getBrevoClient() {
+  if (brevoClient) return brevoClient;
+  if (!process.env.BREVO_API_KEY) return null;
+  brevoClient = new BrevoClient({ apiKey: process.env.BREVO_API_KEY });
+  return brevoClient;
 }
 
 function formatDateTime(iso, timezone) {
@@ -115,21 +110,22 @@ function addToCalendarButton(icsUrl) {
  * "Add to Calendar" button backed by an attached .ics file, which works
  * on both iPhone and Android.
  *
- * Sent via Gmail SMTP rather than Resend, because Resend's free tier
+ * Sent via Brevo rather than Resend or Gmail SMTP: Resend's free tier
  * blocks sending to anyone except your own verified account email until
- * a domain is verified — Gmail has no such restriction, so this is what
- * actually reaches real clients in the meantime.
+ * a domain is verified, and raw SMTP (which Gmail requires) is blocked
+ * outbound on Render's free tier. Brevo's free tier is a genuine HTTP
+ * API with no domain-verification requirement to send to real clients.
  */
 export async function sendClientConfirmationEmail({ to, name, treatment, startISO, endISO, notes, timezone, bookingId }) {
-  const transporter = getGmailTransporter();
-  if (!transporter) {
-    console.log('GMAIL_USER/GMAIL_APP_PASSWORD not set — skipping client confirmation email.');
+  const brevo = getBrevoClient();
+  if (!brevo) {
+    console.log('BREVO_API_KEY not set — skipping client confirmation email.');
     return;
   }
 
   const { date, time } = formatDateTime(startISO, timezone);
   const icsFilename = 'la-derma-consultation.ics';
-  const organizerEmail = process.env.GMAIL_USER || process.env.CLINIC_NOTIFY_EMAIL || 'bookings@laderma.com';
+  const organizerEmail = process.env.BREVO_SENDER_EMAIL || process.env.CLINIC_NOTIFY_EMAIL || 'bookings@laderma.com';
 
   const ics = buildBookingICS({
     uid: `${bookingId}@laderma`,
@@ -160,19 +156,21 @@ export async function sendClientConfirmationEmail({ to, name, treatment, startIS
     </p>
   `;
 
-  await transporter.sendMail({
-    from: process.env.CLINIC_FROM_EMAIL || `La Derma <${process.env.GMAIL_USER}>`,
-    to,
+  await brevo.transactionalEmails.sendTransacEmail({
+    sender: {
+      email: process.env.BREVO_SENDER_EMAIL,
+      name: 'La Derma',
+    },
+    to: [{ email: to, name }],
     subject: 'Your La Derma consultation is confirmed',
-    html: emailShell({
+    htmlContent: emailShell({
       preheader: `Your ${treatment} consultation on ${date} at ${time} is confirmed.`,
       bodyHtml,
     }),
-    attachments: [
+    attachment: [
       {
-        filename: icsFilename,
-        content: ics,
-        contentType: 'text/calendar; charset=utf-8; method=PUBLISH',
+        name: icsFilename,
+        content: Buffer.from(ics).toString('base64'),
       },
     ],
   });

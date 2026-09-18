@@ -156,13 +156,16 @@ export async function createBooking({ startISO, name, email, phone, treatment, n
     });
   } catch (err) {
     console.error('Failed to send client confirmation email:', err);
-    if (err?.responseCode === 535 || /Username and Password not accepted/i.test(err?.message || '')) {
+    if (err?.statusCode === 401) {
       console.error(
-        'This looks like a Gmail authentication failure: check GMAIL_USER is ' +
-        'a real Gmail address, GMAIL_APP_PASSWORD is a 16-character App ' +
-        'Password (not your normal Gmail password), and that 2-Step ' +
-        'Verification is enabled on that Google account. See ' +
-        'server/.env.example for the exact steps.'
+        'This looks like an invalid or missing Brevo API key: check ' +
+        'BREVO_API_KEY is set correctly. See server/.env.example for details.'
+      );
+    } else if (err?.statusCode === 400 || err?.statusCode === 422) {
+      console.error(
+        'Brevo rejected the request — check BREVO_SENDER_EMAIL is set to a ' +
+        'real, verified sender address in your Brevo account (Senders, ' +
+        'Domains & Dedicated IPs > Senders).'
       );
     }
   }
