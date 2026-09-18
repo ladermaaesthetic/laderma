@@ -156,12 +156,13 @@ export async function createBooking({ startISO, name, email, phone, treatment, n
     });
   } catch (err) {
     console.error('Failed to send client confirmation email:', err);
-    if (err?.name === 'validation_error' || /You can only send testing emails/i.test(err?.message || '')) {
+    if (err?.responseCode === 535 || /Username and Password not accepted/i.test(err?.message || '')) {
       console.error(
-        'This looks like the Resend free-tier restriction: without a verified ' +
-        'domain, you can only send TO the email address your Resend account ' +
-        'is registered under — not to real clients. Verify a domain in Resend ' +
-        'to lift this, see server/.env.example for details.'
+        'This looks like a Gmail authentication failure: check GMAIL_USER is ' +
+        'a real Gmail address, GMAIL_APP_PASSWORD is a 16-character App ' +
+        'Password (not your normal Gmail password), and that 2-Step ' +
+        'Verification is enabled on that Google account. See ' +
+        'server/.env.example for the exact steps.'
       );
     }
   }

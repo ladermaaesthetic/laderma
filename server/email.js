@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import { buildBookingICS } from './ics.js';
 
 const LOGO_URL =
@@ -7,6 +8,24 @@ const LOGO_URL =
 function getResendClient() {
   if (!process.env.RESEND_API_KEY) return null;
   return new Resend(process.env.RESEND_API_KEY);
+}
+
+// Gmail SMTP has no "can only send to your own address" restriction the
+// way an unverified Resend account does, so this is what actually sends
+// the client-facing confirmation email until a domain is verified in
+// Resend. Requires a Gmail App Password (not the regular account
+// password) — see server/.env.example for how to generate one.
+let gmailTransporter = null;
+function getGmailTransporter() {
+  if (gmailTransporter) return gmailTransporter;
+  const { GMAIL_USER, GMAIL_APP_PASSWORD } = process.env;
+  if (!GMAIL_USER || !GMAIL_APP_PASSWORD) return null;
+
+  gmailTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
+  });
+  return gmailTransporter;
 }
 
 function formatDateTime(iso, timezone) {
@@ -95,17 +114,22 @@ function addToCalendarButton(icsUrl) {
  * invite; see calendar.js, sendUpdates is set to 'none'). Includes an
  * "Add to Calendar" button backed by an attached .ics file, which works
  * on both iPhone and Android.
+ *
+ * Sent via Gmail SMTP rather than Resend, because Resend's free tier
+ * blocks sending to anyone except your own verified account email until
+ * a domain is verified — Gmail has no such restriction, so this is what
+ * actually reaches real clients in the meantime.
  */
 export async function sendClientConfirmationEmail({ to, name, treatment, startISO, endISO, notes, timezone, bookingId }) {
-  const resend = getResendClient();
-  if (!resend) {
-    console.log('RESEND_API_KEY not set — skipping client confirmation email.');
+  const transporter = getGmailTransporter();
+  if (!transporter) {
+    console.log('GMAIL_USER/GMAIL_APP_PASSWORD not set — skipping client confirmation email.');
     return;
   }
 
   const { date, time } = formatDateTime(startISO, timezone);
   const icsFilename = 'la-derma-consultation.ics';
-  const organizerEmail = process.env.CLINIC_NOTIFY_EMAIL || 'bookings@laderma.com';
+  const organizerEmail = process.env.GMAIL_USER || process.env.CLINIC_NOTIFY_EMAIL || 'bookings@laderma.com';
 
   const ics = buildBookingICS({
     uid: `${bookingId}@laderma`,
@@ -136,8 +160,8 @@ export async function sendClientConfirmationEmail({ to, name, treatment, startIS
     </p>
   `;
 
-  await resend.emails.send({
-    from: process.env.CLINIC_FROM_EMAIL || 'La Derma <onboarding@resend.dev>',
+  await transporter.sendMail({
+    from: process.env.CLINIC_FROM_EMAIL || `La Derma <${process.env.GMAIL_USER}>`,
     to,
     subject: 'Your La Derma consultation is confirmed',
     html: emailShell({
@@ -147,7 +171,7 @@ export async function sendClientConfirmationEmail({ to, name, treatment, startIS
     attachments: [
       {
         filename: icsFilename,
-        content: Buffer.from(ics).toString('base64'),
+        content: ics,
         contentType: 'text/calendar; charset=utf-8; method=PUBLISH',
       },
     ],

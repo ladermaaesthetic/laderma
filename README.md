@@ -119,51 +119,75 @@ Visit the URL Vite prints (typically `http://localhost:5173`). The
 Booking page will automatically detect the calendar is connected and show
 real availability.
 
-## 5. Set up branded email notifications (optional)
+## 5. Set up email notifications (optional)
 
 By default, no confirmation email is sent to the client and no
 notification is sent to the clinic when someone books — the appointment
-is only added to your connected Google Calendar. To send a properly
-branded confirmation email to the client (with an Add to Calendar
-button/attachment), and a notification email to the clinic whenever
-someone books:
+is only added to your connected Google Calendar. Two separate email
+providers are used, for a genuine reason explained below:
+
+- **Client confirmation email** (branded, with an Add to Calendar
+  button/attachment) — sent via **Gmail SMTP**
+- **Clinic new-booking notification** — sent via **Resend**
+
+### Why two providers
+
+Resend's free tier only allows sending **to the email address your
+Resend account itself is registered under**, until you verify a domain —
+it cannot email real clients on an unverified account. Gmail has no such
+restriction, so it's used for the client-facing email instead. The
+clinic notification stays on Resend because it only ever needs to reach
+your own inbox, which the free tier already allows.
+
+Once you verify a domain in Resend, you can move the client email over
+to Resend as well if you'd rather use one provider for everything — see
+the note in `server/.env.example`.
+
+### Setting up the client confirmation email (Gmail)
+
+1. Go to <https://myaccount.google.com/security> and turn on **2-Step
+   Verification** if it isn't already on (required for the next step)
+2. Go to <https://myaccount.google.com/apppasswords> and create a new
+   app password
+3. Copy the 16-character password it gives you — **not** your normal
+   Gmail password
+4. In `server/.env`, add:
+   ```
+   GMAIL_USER=laderma.testing@gmail.com
+   GMAIL_APP_PASSWORD=your16charapppassword
+   PUBLIC_API_BASE=http://localhost:4000
+   ```
+
+### Setting up the clinic notification email (Resend)
 
 1. Sign up free at [resend.com](https://resend.com)
 2. Create an API key under **API Keys** in their dashboard
 3. In `server/.env`, add:
    ```
    RESEND_API_KEY=re_your_api_key_here
-   CLINIC_NOTIFY_EMAIL=your-clinic-inbox@example.com
-   PUBLIC_API_BASE=http://localhost:4000
+   CLINIC_NOTIFY_EMAIL=laderma.testing@gmail.com
    ```
+   `CLINIC_NOTIFY_EMAIL` **must** match the email address your Resend
+   account is registered under, or this will fail with a 403 until a
+   domain is verified.
 4. Restart the server
 
 If these variables aren't set, bookings still work exactly as before —
-the emails are simply skipped, with a note in the server log.
+the emails are simply skipped, with a note in the server log. Either
+provider can fail independently without affecting the booking itself or
+the other provider — the calendar event is always the source of truth.
 
-### Important: Resend's free-tier sending restriction
+### Once you have a domain
 
-**Without a verified domain, Resend only lets you send TO the email
-address your Resend account itself is registered under** — not to real
-clients. This means, until you verify a domain:
-
-- The **clinic notification** email will only actually arrive if
-  `CLINIC_NOTIFY_EMAIL` is set to the same address you signed up to
-  Resend with.
-- The **client confirmation** email will fail for any real client whose
-  email differs from that address — you'll see this in the server logs
-  as a `validation_error` from Resend.
-
-This is a genuine platform limit, not a bug — bookings themselves still
-succeed and still land on the calendar even when these emails fail; the
-booking flow does not depend on email sending working.
-
-To send properly to real clients, you need to verify your own domain in
-Resend's dashboard (**Domains → Add Domain**, then add the DNS records it
-gives you at your domain registrar). Once verified, you can send to any
-address and from a real address of your own, e.g.
-`CLINIC_FROM_EMAIL=La Derma <bookings@laderma.com>`, instead of the
-default shared `onboarding@resend.dev` sender.
+Verify it in Resend's dashboard (**Domains → Add Domain**, then add the
+DNS records it gives you at your domain registrar). Once verified you
+can:
+- Set `CLINIC_FROM_EMAIL=La Derma <bookings@yourdomain.com>` to send the
+  clinic notification from a real address instead of Resend's shared
+  `onboarding@resend.dev`
+- Optionally switch the client confirmation email over to Resend too,
+  since domain verification removes the restriction that made Gmail
+  necessary in the first place
 
 ## 6. Using it day to day
 
