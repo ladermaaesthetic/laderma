@@ -1,0 +1,237 @@
+.admin-shell{
+  min-height:100vh;
+  background:#F4F1EB;
+  color:#22314A;
+  font-family:'Manrope', sans-serif;
+  padding:32px 24px 64px;
+}
+
+.admin-eyebrow{
+  font-size:0.68rem;
+  text-transform:uppercase;
+  letter-spacing:0.3em;
+  color:#A98347;
+  margin:0;
+}
+
+/* Login */
+.admin-login-shell{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.admin-login-card{
+  width:100%;
+  max-width:360px;
+  background:#FFFFFF;
+  border:1px solid rgba(169,131,71,0.16);
+  border-radius:1.4rem;
+  padding:36px;
+  box-shadow:0 24px 60px rgba(34,49,74,0.1);
+}
+.admin-login-title{
+  font-family:'Cormorant Garamond', serif;
+  font-size:1.7rem;
+  margin:10px 0 6px;
+}
+.admin-login-desc{
+  font-size:0.9rem;
+  color:rgba(34,49,74,0.6);
+  margin:0 0 24px;
+}
+.admin-login-btn{
+  width:100%;
+  margin-top:8px;
+}
+
+/* Fields (shared by login + walk-in form) */
+.admin-field{
+  margin-bottom:16px;
+}
+.admin-field label{
+  display:block;
+  font-size:0.75rem;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:rgba(34,49,74,0.55);
+  margin-bottom:6px;
+}
+.admin-field input,
+.admin-field select,
+.admin-field textarea{
+  width:100%;
+  font-family:'Manrope', sans-serif;
+  font-size:0.92rem;
+  color:#22314A;
+  background:#FBF9F5;
+  border:1px solid rgba(169,131,71,0.2);
+  border-radius:0.7rem;
+  padding:11px 13px;
+}
+.admin-field textarea{min-height:70px; resize:vertical;}
+.admin-field-row{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:16px;
+}
+@media (min-width: 500px){
+  .admin-field-row{grid-template-columns:1fr 1fr;}
+}
+
+.admin-error{
+  font-size:0.85rem;
+  color:#B4463A;
+  margin:0 0 14px;
+}
+
+/* Dashboard header */
+.admin-header{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  max-width:1200px;
+  margin:0 auto 24px;
+}
+.admin-title{
+  font-family:'Cormorant Garamond', serif;
+  font-size:1.9rem;
+  margin:8px 0 0;
+}
+.admin-header-actions{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.admin-username{
+  font-size:0.85rem;
+  color:rgba(34,49,74,0.6);
+}
+
+.admin-toolbar{
+  max-width:1200px;
+  margin:0 auto 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:12px;
+}
+.admin-updated{
+  font-size:0.78rem;
+  color:rgba(34,49,74,0.45);
+}
+
+.admin-loading, .admin-empty{
+  max-width:1200px;
+  margin:24px auto;
+  font-size:0.92rem;
+  color:rgba(34,49,74,0.6);
+}
+
+.admin-notice{
+  max-width:1200px;
+  margin:0 auto 20px;
+  padding:16px 18px;
+  border-radius:1rem;
+  font-size:0.88rem;
+}
+.admin-notice-error{
+  background:#F7E9E7;
+  color:#B4463A;
+}
+
+/* Walk-in form */
+.admin-walkin-form{
+  max-width:1200px;
+  margin:0 auto 28px;
+  background:#FFFFFF;
+  border:1px solid rgba(169,131,71,0.16);
+  border-radius:1.2rem;
+  padding:24px;
+}
+.admin-walkin-title{
+  font-family:'Cormorant Garamond', serif;
+  font-size:1.3rem;
+  margin:0 0 18px;
+}
+.admin-slot-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(78px, 1fr));
+  gap:8px;
+  margin-bottom:16px;
+}
+.admin-slot-btn{
+  font-size:0.82rem;
+  font-weight:500;
+  color:#22314A;
+  background:#FBF9F5;
+  border:1px solid rgba(169,131,71,0.2);
+  border-radius:0.7rem;
+  padding:9px 6px;
+  cursor:pointer;
+}
+.admin-slot-btn.selected{
+  background:#22314A;
+  color:#F6EFE2;
+  border-color:#22314A;
+}
+.admin-form-errors{
+  margin:0 0 14px;
+  padding:12px 16px;
+  border-radius:0.8rem;
+  background:#F7E9E7;
+  color:#B4463A;
+  font-size:0.84rem;
+}
+
+/* Bookings table */
+.admin-table-wrap{
+  max-width:1200px;
+  margin:0 auto;
+  overflow-x:auto;
+  background:#FFFFFF;
+  border:1px solid rgba(169,131,71,0.16);
+  border-radius:1.2rem;
+}
+.admin-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:0.88rem;
+}
+.admin-table th{
+  text-align:left;
+  font-size:0.7rem;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:rgba(34,49,74,0.5);
+  padding:14px 16px;
+  border-bottom:1px solid rgba(169,131,71,0.16);
+  white-space:nowrap;
+}
+.admin-table td{
+  padding:14px 16px;
+  border-bottom:1px solid rgba(169,131,71,0.1);
+  vertical-align:top;
+}
+.admin-table tr:last-child td{border-bottom:none;}
+.admin-muted{
+  font-size:0.8rem;
+  color:rgba(34,49,74,0.5);
+}
+.admin-notes-cell{
+  max-width:220px;
+  white-space:pre-wrap;
+}
+.admin-cancel-btn{
+  font-size:0.78rem;
+  color:#B4463A;
+  background:none;
+  border:1px solid rgba(180,70,58,0.3);
+  border-radius:999px;
+  padding:6px 14px;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.admin-cancel-btn:hover{background:#F7E9E7;}

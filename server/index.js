@@ -7,15 +7,29 @@ import {
   isCalendarConnected,
   disconnectCalendar,
 } from './googleAuth.js';
-import { getAvailableSlots, createBooking, getBookingById, CONSULTATION_MINUTES, TIMEZONE } from './calendar.js';
+import {
+  getAvailableSlots,
+  createBooking,
+  getBookingById,
+  listUpcomingBookings,
+  cancelBooking,
+  CONSULTATION_MINUTES,
+  TIMEZONE,
+} from './calendar.js';
 import { buildBookingICS } from './ics.js';
+import { bootstrapAdminIfNeeded } from './adminAuth.js';
+import { sessionMiddleware, requireAdminAuth, registerAdminAuthRoutes } from './adminSession.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
 
-app.use(cors({ origin: CLIENT_ORIGIN }));
+app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
 app.use(express.json());
+app.use(sessionMiddleware());
+
+bootstrapAdminIfNeeded();
+registerAdminAuthRoutes(app);
 
 const TREATMENT_OPTIONS = [
   'Laser Hair Consultation',
@@ -212,6 +226,96 @@ app.get('/api/bookings/:id/calendar.ics', async (req, res) => {
     }
     console.error('Failed to serve .ics for booking:', req.params.id, err);
     res.status(404).send('Booking not found.');
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Admin routes — everything below requires a logged-in admin session.
+// These expose full client details and calendar control that the public
+// site deliberately never exposes.
+// ---------------------------------------------------------------------------
+
+app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
+  try {
+    const bookings = await listUpcomingBookings();
+    res.json({ bookings });
+  } catch (err) {
+    if (err.message === 'CALENDAR_NOT_CONNECTED') {
+      return res.status(503).json({ error: 'Calendar is not connected.' });
+    }
+    console.error('Failed to list bookings for admin:', err);
+    res.status(500).json({ error: 'Could not load bookings.' });
+  }
+});
+
+app.delete('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
+  try {
+    await cancelBooking(req.params.id);
+    res.json({ cancelled: true });
+  } catch (err) {
+    if (err.message === 'CALENDAR_NOT_CONNECTED') {
+      return res.status(503).json({ error: 'Calendar is not connected.' });
+    }
+    console.error('Failed to cancel booking:', req.params.id, err);
+    res.status(500).json({ error: 'Could not cancel the booking.' });
+  }
+});
+
+// Admin walk-in booking creation reuses the same createBooking logic as
+// the public site (including the double-check that the slot is still
+// free), so a walk-in can never silently double-book a slot either.
+app.post('/api/admin/bookings', requireAdminAuth, async (req, res) => {
+  const { startISO, name, email, phone, treatment, notes } = req.body || {};
+
+  const errors = [];
+  if (!startISO || isNaN(Date.parse(startISO))) errors.push('A valid appointment time is required.');
+  if (!name || name.trim().length < 2) errors.push('Full name is required.');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push('A valid email address is required.');
+  if (!phone || phone.trim().length < 5) errors.push('A valid phone number is required.');
+  if (!treatment) errors.push('Please select a treatment focus.');
+
+  if (errors.length > 0) {
+    return res.status(400).json({ errors });
+  }
+
+  try {
+    const event = await createBooking({
+      startISO,
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      treatment,
+      notes: (notes || '').trim(),
+    });
+    res.status(201).json({ confirmed: true, eventId: event.id, start: event.start, end: event.end });
+  } catch (err) {
+    if (err.message === 'CALENDAR_NOT_CONNECTED') {
+      return res.status(503).json({ error: 'Calendar is not connected.' });
+    }
+    if (err.message === 'SLOT_NO_LONGER_AVAILABLE') {
+      return res.status(409).json({ error: 'That slot is no longer available.' });
+    }
+    console.error('Failed to create admin booking:', err);
+    res.status(500).json({ error: 'Could not create the booking.' });
+  }
+});
+
+// Same public availability logic, exposed for the admin panel's own slot
+// picker when creating a walk-in booking.
+app.get('/api/admin/availability', requireAdminAuth, async (req, res) => {
+  const { date } = req.query;
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return res.status(400).json({ error: 'Provide a date as ?date=YYYY-MM-DD' });
+  }
+  try {
+    const slots = await getAvailableSlots(date);
+    res.json({ date, slots, treatments: TREATMENT_OPTIONS });
+  } catch (err) {
+    if (err.message === 'CALENDAR_NOT_CONNECTED') {
+      return res.status(503).json({ error: 'Calendar is not connected.' });
+    }
+    console.error('Admin availability error:', err);
+    res.status(500).json({ error: 'Could not load availability.' });
   }
 });
 

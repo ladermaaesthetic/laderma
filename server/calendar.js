@@ -194,4 +194,61 @@ export async function getBookingById(eventId) {
   return res.data;
 }
 
+/**
+ * Lists all upcoming bookings with full client details — used by the
+ * admin panel only. The public site never calls this; the public
+ * availability endpoint deliberately only returns free/busy times, not
+ * event contents, to protect client privacy.
+ */
+export async function listUpcomingBookings() {
+  const calendar = getCalendarClient();
+  if (!calendar) {
+    throw new Error('CALENDAR_NOT_CONNECTED');
+  }
+
+  const res = await calendar.events.list({
+    calendarId: CALENDAR_ID,
+    timeMin: new Date().toISOString(),
+    maxResults: 250,
+    singleEvents: true,
+    orderBy: 'startTime',
+  });
+
+  return (res.data.items || []).map((event) => {
+    const attendee = (event.attendees || [])[0] || {};
+    const treatmentMatch = /Treatment focus: (.+)/.exec(event.description || '');
+    const phoneMatch = /Phone: (.+)/.exec(event.description || '');
+    const notesMatch = /Notes: (.+)/.exec(event.description || '');
+
+    return {
+      id: event.id,
+      start: event.start?.dateTime || event.start?.date,
+      end: event.end?.dateTime || event.end?.date,
+      summary: event.summary,
+      treatment: treatmentMatch ? treatmentMatch[1] : null,
+      clientName: attendee.displayName || null,
+      clientEmail: attendee.email || null,
+      clientPhone: phoneMatch ? phoneMatch[1] : null,
+      notes: notesMatch && notesMatch[1] !== '(none provided)' ? notesMatch[1] : null,
+    };
+  });
+}
+
+/**
+ * Cancels (deletes) a booking by its Google Calendar event ID. Used by
+ * the admin panel to remove no-shows, cancellations, or mistaken bookings.
+ */
+export async function cancelBooking(eventId) {
+  const calendar = getCalendarClient();
+  if (!calendar) {
+    throw new Error('CALENDAR_NOT_CONNECTED');
+  }
+
+  await calendar.events.delete({
+    calendarId: CALENDAR_ID,
+    eventId,
+    sendUpdates: 'none',
+  });
+}
+
 export { CONSULTATION_MINUTES, TIMEZONE };
