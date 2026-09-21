@@ -5,6 +5,9 @@ import { buildBookingICS } from './ics.js';
 const LOGO_URL =
   'https://d2xsxph8kpxj0f.cloudfront.net/310519663448677533/D7fnEQUJWHBXWGYDWnFdAo/la-derma-logo_de083f56.jpg';
 
+const CLINIC_ADDRESS_TEXT = '21 Jackson St, Gateshead NE8 1EE';
+const CLINIC_MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=21+Jackson+St%2C+Gateshead+NE8+1EE';
+
 function getResendClient() {
   if (!process.env.RESEND_API_KEY) return null;
   return new Resend(process.env.RESEND_API_KEY);
@@ -149,6 +152,7 @@ export async function sendClientConfirmationEmail({ to, name, treatment, startIS
       ${detailRow('Treatment', treatment)}
       ${detailRow('Date', date)}
       ${detailRow('Time', `${time} (${timezone})`)}
+      ${detailRow('Location', `${CLINIC_ADDRESS_TEXT}<br/><a href="${CLINIC_MAPS_URL}" style="color:#9C7A46; text-decoration:none; font-size:13px;">Get directions →</a>`)}
     </table>
     ${addToCalendarButton(icsUrl)}
     <p style="font-size:14px; line-height:1.6; color:rgba(34,49,74,0.68); margin:0;">
