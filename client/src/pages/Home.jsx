@@ -156,6 +156,28 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Reviews */}
+      <section className="reviews-section">
+        <div className="container">
+          <div className="reviews-head">
+            <p className="section-eyebrow">What clients say</p>
+            <h2 className="section-title" style={{ maxWidth: '30rem' }}>Real experiences from La Derma clients.</h2>
+            <p className="section-desc" style={{ maxWidth: '38rem' }}>We're building our collection of client reviews — read the latest on Google and Facebook, or leave your own after your visit.</p>
+          </div>
+
+          <div className="reviews-links">
+            <a href="https://www.facebook.com/p/La-Derma-Aesthetic-Clinic-100085383892345/" target="_blank" rel="noreferrer" className="reviews-link-card">
+              <span className="reviews-link-label">Facebook</span>
+              <span className="reviews-link-cta">Read reviews →</span>
+            </a>
+            <a href="https://www.google.com/search?q=La+Derma+Aesthetic+Clinic+reviews" target="_blank" rel="noreferrer" className="reviews-link-card">
+              <span className="reviews-link-label">Google</span>
+              <span className="reviews-link-cta">Read reviews →</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Booking invitation */}
       <section>
         <div className="container booking-grid">

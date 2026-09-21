@@ -207,3 +207,8 @@
 @media (min-width: 900px){
   .category-grid{grid-template-columns:1fr 1fr;}
 }
+@media (max-width: 479px){
+  .category-card{padding:20px;}
+  .info-card{padding:22px;}
+  .price-row{padding:14px 16px; gap:12px;}
+}

@@ -2,18 +2,11 @@ export const CATEGORIES = [
   {
     id: 'free-consultations',
     title: 'Free Consultations',
-    desc: 'Complimentary first step appointments.',
+    desc: 'Complimentary first step appointments, and one specialist consultation.',
     items: [
       { name: 'Facial Analysis', price: 'Free' },
       { name: 'Face and Body Tightening Endolift Consultation', price: 'Free' },
       { name: 'Hair Loss Consultation', price: 'Free' },
-    ],
-  },
-  {
-    id: 'paid-consultations',
-    title: 'Paid Consultations',
-    desc: 'Specialist consultation services.',
-    items: [
       { name: 'Weight Management Consultation', price: '£600' },
     ],
   },
@@ -77,7 +70,6 @@ export const CATEGORIES = [
       { name: 'Excessive Sweating Botox', price: '£350' },
       { name: 'Shoulder & Neck Pain Botox', price: '£350' },
       { name: 'Anti Wrinkle Treatment: One Area', price: '£80' },
-      { name: 'Anti Wrinkle Treatment: 3 Areas', price: '£130' },
     ],
   },
   {
@@ -98,7 +90,7 @@ export const CATEGORIES = [
   {
     id: 'fillers',
     title: 'Fillers and Injectable Boosters',
-    desc: 'Filler and vitamin injection pricing.',
+    desc: 'Filler pricing across facial areas, plus skin refreshing treatments.',
     items: [
       { name: 'Lips Filler 1 ml', price: '£150' },
       { name: 'Jaw Filler', price: '£150' },
@@ -106,9 +98,6 @@ export const CATEGORIES = [
       { name: 'Smile Line Filler', price: '£150' },
       { name: 'Sculptra', price: '£300' },
       { name: 'Radiesse', price: '£250' },
-      { name: 'B12 Injection', price: '£25' },
-      { name: 'Biotin Injection', price: '£30' },
-      { name: 'B Complex and Vitamin C Injection', price: '£50' },
       { name: 'Chemical Peel', price: '£65' },
       { name: 'Vampire Facial Treatment', price: '£100' },
     ],

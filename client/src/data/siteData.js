@@ -30,3 +30,12 @@ export const TREATMENT_OPTIONS = [
   'Skin Rejuvenation Consultation',
   'GLP-1 Weight Loss Consultation',
 ];
+
+export const CLINIC_ADDRESS = {
+  line1: '21 Jackson St',
+  city: 'Gateshead',
+  postcode: 'NE8 1EE',
+  full: '21 Jackson St, Gateshead NE8 1EE',
+  googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=21+Jackson+St%2C+Gateshead+NE8+1EE',
+  googleMapsEmbedSrc: 'https://www.google.com/maps?q=21+Jackson+St%2C+Gateshead+NE8+1EE&output=embed',
+};

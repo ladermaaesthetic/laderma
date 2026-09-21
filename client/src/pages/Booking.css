@@ -264,3 +264,32 @@ form{margin-top:36px;}
 @media (prefers-reduced-motion: reduce){
   .skeleton{animation:none; opacity:0.75;}
 }
+
+/* Location */
+.location-section{
+  border-top:1px solid var(--line);
+  background:var(--row-bg);
+}
+.location-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:32px;
+  align-items:center;
+}
+.location-map-wrap{
+  border-radius:1.6rem;
+  overflow:hidden;
+  border:1px solid var(--line);
+  box-shadow:var(--shadow-sm);
+  aspect-ratio:16 / 11;
+}
+.location-map-wrap iframe{
+  width:100%;
+  height:100%;
+  border:0;
+  display:block;
+}
+
+@media (min-width: 900px){
+  .location-grid{grid-template-columns:0.9fr 1.1fr;}
+}

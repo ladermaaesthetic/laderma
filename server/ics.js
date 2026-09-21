@@ -18,6 +18,8 @@ function escapeICSText(text) {
     .replace(/\n/g, '\\n');
 }
 
+const CLINIC_ADDRESS_TEXT = '21 Jackson St, Gateshead NE8 1EE';
+
 export function buildBookingICS({ uid, startISO, endISO, treatment, name, notes, organizerEmail }) {
   const start = new Date(startISO);
   const end = new Date(endISO);
@@ -42,6 +44,7 @@ export function buildBookingICS({ uid, startISO, endISO, treatment, name, notes,
     `DTEND:${toICSDate(end)}`,
     `SUMMARY:${escapeICSText(`La Derma Consultation — ${treatment}`)}`,
     `DESCRIPTION:${description}`,
+    `LOCATION:${escapeICSText(CLINIC_ADDRESS_TEXT)}`,
     `ORGANIZER;CN=La Derma Aesthetic Clinic:mailto:${organizerEmail}`,
     'STATUS:CONFIRMED',
     'SEQUENCE:0',

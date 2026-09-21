@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import IntroHero from '../components/IntroHero';
+import { CLINIC_ADDRESS } from '../data/siteData';
 import './Booking.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
@@ -159,6 +160,7 @@ export default function Booking() {
             </div>
           </div>
         </section>
+        <LocationSection />
       </>
     );
   }
@@ -175,6 +177,7 @@ export default function Booking() {
             </div>
           </div>
         </section>
+        <LocationSection />
       </>
     );
   }
@@ -195,6 +198,7 @@ export default function Booking() {
             </div>
           </div>
         </section>
+        <LocationSection />
       </>
     );
   }
@@ -322,6 +326,8 @@ export default function Booking() {
 
         </div>
       </section>
+
+      <LocationSection />
     </>
   );
 }
@@ -334,5 +340,36 @@ function BookingIntro() {
       title="View live clinic availability and reserve a consultation time that suits you."
       lede="Choose your treatment focus, review the currently open consultation times, and confirm your booking directly — it's added straight to La Derma's calendar."
     />
+  );
+}
+
+function LocationSection() {
+  return (
+    <section className="location-section">
+      <div className="container location-grid">
+        <div>
+          <p className="section-eyebrow">Find us</p>
+          <h2 className="section-title" style={{ maxWidth: '20rem' }}>La Derma Aesthetic Clinic</h2>
+          <p className="section-desc" style={{ maxWidth: '30rem' }}>{CLINIC_ADDRESS.full}</p>
+          <a
+            href={CLINIC_ADDRESS.googleMapsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="btn btn-outline"
+            style={{ marginTop: 24 }}
+          >
+            Get Directions
+          </a>
+        </div>
+        <div className="location-map-wrap">
+          <iframe
+            title="La Derma Aesthetic Clinic location"
+            src={CLINIC_ADDRESS.googleMapsEmbedSrc}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </div>
+      </div>
+    </section>
   );
 }

@@ -95,7 +95,17 @@ textarea:focus-visible{
 .container{
   max-width:1180px;
   margin:0 auto;
-  padding:0 24px;
+  padding:0 20px;
+}
+
+@media (min-width: 480px){
+  .container{padding:0 28px;}
+}
+@media (min-width: 768px){
+  .container{padding:0 40px;}
+}
+@media (min-width: 1024px){
+  .container{padding:0 24px;}
 }
 
 .btn{

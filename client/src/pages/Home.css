@@ -302,3 +302,54 @@
   .about-grid{grid-template-columns:1.05fr 0.95fr;}
   .booking-grid{grid-template-columns:0.9fr 1.1fr;}
 }
+@media (max-width: 479px){
+  .service-card{padding:22px;}
+  .hero-stat{padding:16px;}
+  .hero-card{padding:20px;}
+  .hero-card-dark{padding:20px;}
+  .about-check{padding:14px;}
+}
+
+/* Reviews */
+.reviews-section{
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  background:var(--row-bg);
+}
+.reviews-links{
+  margin-top:32px;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:16px;
+}
+.reviews-link-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  border-radius:1.4rem;
+  border:1px solid var(--line);
+  background:var(--surface-2);
+  padding:22px 24px;
+  transition:transform .3s ease, box-shadow .3s ease;
+}
+.reviews-link-card:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--shadow-sm);
+}
+.reviews-link-label{
+  font-family:'Cormorant Garamond', serif;
+  font-size:1.3rem;
+  color:var(--navy-ink);
+}
+.reviews-link-cta{
+  font-size:0.78rem;
+  text-transform:uppercase;
+  letter-spacing:0.16em;
+  color:var(--gold-deep);
+  white-space:nowrap;
+}
+
+@media (min-width: 480px){
+  .reviews-links{grid-template-columns:1fr 1fr;}
+}
