@@ -1,0 +1,106 @@
+.reviews-carousel{
+  position:relative;
+  overflow:hidden;
+  -webkit-mask-image:linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+  mask-image:linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+}
+
+.reviews-track{
+  display:flex;
+  gap:20px;
+  width:max-content;
+  animation:reviews-scroll 46s linear infinite;
+}
+.reviews-carousel.paused .reviews-track{
+  animation-play-state:paused;
+}
+/* Also pause on plain CSS hover/focus, so a mouse user gets an instant
+   response even before React re-renders the `paused` class. */
+.reviews-carousel:hover .reviews-track,
+.reviews-carousel:focus-within .reviews-track{
+  animation-play-state:paused;
+}
+
+@keyframes reviews-scroll{
+  from{ transform:translateX(0); }
+  to{ transform:translateX(-50%); }
+}
+
+.review-card{
+  flex:0 0 auto;
+  width:min(340px, 82vw);
+  border-radius:1.8rem;
+  border:1px solid var(--line);
+  background:var(--surface-1);
+  box-shadow:var(--shadow-md);
+  padding:26px;
+  display:flex;
+  flex-direction:column;
+}
+
+.review-stars{
+  display:flex;
+  gap:3px;
+  color:var(--gold-deep);
+}
+
+.review-text{
+  margin-top:16px;
+  flex:1;
+  font-size:0.95rem;
+  line-height:1.75;
+  color:var(--navy-ink-mid);
+}
+
+.review-footer{
+  margin-top:20px;
+  padding-top:16px;
+  border-top:1px solid var(--line);
+}
+.review-name{
+  font-family:'Cormorant Garamond', serif;
+  font-size:1.15rem;
+  color:var(--navy-ink);
+}
+.review-meta{
+  margin-top:2px;
+  font-size:0.78rem;
+  text-transform:uppercase;
+  letter-spacing:0.14em;
+  color:var(--navy-ink-faint);
+}
+
+.reviews-hint{
+  margin-top:18px;
+  text-align:center;
+  font-size:0.82rem;
+  color:var(--navy-ink-faint);
+}
+
+.reviews-cta-band{
+  margin-top:24px;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  background:var(--navy-panel);
+  color:rgba(255,248,240,0.94);
+}
+.reviews-cta-inner{
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+  align-items:flex-start;
+  padding:56px 0;
+}
+.reviews-cta-inner h2{
+  color:#F6EFE2;
+  font-size:clamp(1.8rem, 3.6vw, 2.6rem);
+  max-width:22rem;
+}
+
+@media (min-width: 900px){
+  .reviews-cta-inner{flex-direction:row; justify-content:space-between; align-items:center;}
+}
+
+@media (prefers-reduced-motion: reduce){
+  .reviews-track{animation:none;}
+}

@@ -1,0 +1,75 @@
+.account-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:40px;
+}
+
+.account-section{margin-bottom:40px;}
+.account-section:last-child{margin-bottom:0;}
+
+.account-status{
+  margin-top:14px;
+  font-size:0.92rem;
+  line-height:1.7;
+  color:var(--navy-ink-mid);
+}
+.account-status-error{color:#B4463A;}
+
+.account-booking-list{
+  margin-top:16px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.account-booking-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+  border-radius:1.4rem;
+  border:1px solid var(--line);
+  background:var(--surface-1);
+  padding:18px 20px;
+}
+.account-booking-treatment{
+  font-family:'Cormorant Garamond', serif;
+  font-size:1.15rem;
+  color:var(--navy-ink);
+}
+.account-booking-date{
+  margin-top:4px;
+  font-size:0.86rem;
+  color:var(--navy-ink-mid);
+}
+.account-cancel-btn{
+  flex-shrink:0;
+  padding:10px 20px;
+  font-size:0.78rem;
+}
+
+.account-details{
+  margin-top:14px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.account-details p{
+  font-size:0.92rem;
+  color:var(--navy-ink-mid);
+}
+.account-details p:first-child{
+  font-family:'Cormorant Garamond', serif;
+  font-size:1.2rem;
+  color:var(--navy-ink);
+}
+
+.account-logout-btn{
+  margin-top:20px;
+  width:100%;
+  justify-content:center;
+}
+
+@media (min-width: 900px){
+  .account-grid{grid-template-columns:1.3fr 1fr; align-items:start;}
+}

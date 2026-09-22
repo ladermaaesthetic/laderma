@@ -62,7 +62,7 @@ export function requireAdminAuth(req, res, next) {
 }
 
 export function registerAdminAuthRoutes(app) {
-  app.post('/api/admin/login', (req, res) => {
+  app.post('/api/admin/login', async (req, res) => {
     const ip = req.ip;
     if (isRateLimited(ip)) {
       return res.status(429).json({ error: 'Too many failed attempts. Try again in a few minutes.' });
@@ -73,7 +73,7 @@ export function registerAdminAuthRoutes(app) {
       return res.status(400).json({ error: 'Username and password are required.' });
     }
 
-    const valid = verifyAdminLogin(username, password);
+    const valid = await verifyAdminLogin(username, password);
     if (!valid) {
       recordFailedAttempt(ip);
       return res.status(401).json({ error: 'Invalid username or password.' });

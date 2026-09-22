@@ -1,10 +1,9 @@
 import { google } from 'googleapis';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { DATA_DIR } from './dataDir.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const TOKEN_PATH = path.join(__dirname, 'data', 'google-token.json');
+const TOKEN_PATH = path.join(DATA_DIR, 'google-token.json');
 
 // Scopes: read free/busy + create events on the clinic's calendar.
 // We deliberately do NOT request broader Gmail/Drive scopes — only calendar access.

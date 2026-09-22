@@ -93,6 +93,8 @@
   gap:16px;
   max-width:1200px;
   margin:0 auto 24px;
+  padding-bottom:20px;
+  border-bottom:2px solid var(--slate-line);
 }
 .admin-title{
   font-family:'Cormorant Garamond', serif;
@@ -235,3 +237,147 @@
   white-space:nowrap;
 }
 .admin-cancel-btn:hover{background:#F7E9E7;}
+
+/* Tabs */
+.admin-tabs{
+  max-width:1200px;
+  margin:0 auto 20px;
+  display:flex;
+  gap:8px;
+  border-bottom:1px solid var(--slate-line);
+}
+.admin-tab{
+  font-family:'Manrope', sans-serif;
+  font-size:0.88rem;
+  font-weight:600;
+  color:rgba(34,49,74,0.5);
+  background:none;
+  border:none;
+  border-bottom:2px solid transparent;
+  padding:10px 4px;
+  margin-bottom:-1px;
+  cursor:pointer;
+}
+.admin-tab:hover{color:#22314A;}
+.admin-tab.active{
+  color:#22314A;
+  border-bottom-color:#A98347;
+}
+
+/* Small buttons reused across the pricing manager */
+.btn-sm{
+  font-size:0.78rem;
+  padding:8px 16px;
+}
+
+/* Pricing manager */
+.pricing-manager{
+  max-width:1200px;
+  margin:0 auto;
+}
+.pricing-category-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.pricing-category-row{
+  background:#FFFFFF;
+  border:1px solid rgba(169,131,71,0.16);
+  border-radius:1.2rem;
+  overflow:hidden;
+}
+.pricing-category-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  padding:18px 20px;
+  cursor:pointer;
+}
+.pricing-category-title{
+  font-family:'Cormorant Garamond', serif;
+  font-size:1.2rem;
+  margin:0 0 4px;
+  color:#22314A;
+}
+.pricing-category-desc{
+  font-size:0.84rem;
+  color:rgba(34,49,74,0.55);
+  margin:0;
+}
+.pricing-category-head-right{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-shrink:0;
+}
+.pricing-chevron{
+  color:#A98347;
+  transition:transform 0.2s ease;
+  display:inline-block;
+}
+.pricing-chevron.open{transform:rotate(180deg);}
+
+.pricing-category-body{
+  padding:0 20px 20px;
+  border-top:1px solid rgba(169,131,71,0.12);
+}
+.pricing-category-actions{
+  display:flex;
+  gap:10px;
+  margin:16px 0;
+}
+
+.pricing-item-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin:16px 0;
+}
+.pricing-item-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 14px;
+  background:#FBF9F5;
+  border:1px solid rgba(169,131,71,0.14);
+  border-radius:0.8rem;
+}
+.pricing-item-row .price-name{
+  flex:1;
+  margin:0;
+  font-size:0.88rem;
+  color:#22314A;
+}
+.pricing-item-row .price-value{
+  margin:0;
+  font-size:0.88rem;
+  font-weight:600;
+  color:#A98347;
+  white-space:nowrap;
+}
+.pricing-item-actions{
+  display:flex;
+  gap:8px;
+  flex-shrink:0;
+}
+
+.pricing-add-item-btn{
+  margin-top:4px;
+}
+
+.pricing-inline-form{
+  background:#FBF9F5;
+  border:1px solid rgba(169,131,71,0.16);
+  border-radius:1rem;
+  padding:16px;
+  margin:12px 0;
+}
+.pricing-item-form{
+  margin:8px 0;
+}
+.pricing-form-actions{
+  display:flex;
+  gap:10px;
+  margin-top:4px;
+}

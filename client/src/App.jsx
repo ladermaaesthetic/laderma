@@ -4,7 +4,12 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Gallery from './pages/Gallery';
 import Pricing from './pages/Pricing';
+import Reviews from './pages/Reviews';
+import Location from './pages/Location';
 import Booking from './pages/Booking';
+import Login from './pages/account/Login';
+import Register from './pages/account/Register';
+import Account from './pages/account/Account';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 
@@ -27,7 +32,12 @@ export default function App() {
                 <Route path="/about" element={<About />} />
                 <Route path="/gallery" element={<Gallery />} />
                 <Route path="/pricing" element={<Pricing />} />
+                <Route path="/reviews" element={<Reviews />} />
+                <Route path="/location" element={<Location />} />
                 <Route path="/booking" element={<Booking />} />
+                <Route path="/account" element={<Account />} />
+                <Route path="/account/login" element={<Login />} />
+                <Route path="/account/register" element={<Register />} />
               </Routes>
             </Layout>
           }

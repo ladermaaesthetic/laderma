@@ -1,4 +1,8 @@
-export const CATEGORIES = [
+// One-time seed data for the pricing database, mirroring the site's
+// current (corrected) price list. This only ever runs if the categories
+// table is empty (see seedFromStaticDataIfEmpty in pricingStore.js) — it
+// is not a source of truth once the database has rows, only a bootstrap.
+export const STATIC_SEED_CATEGORIES = [
   {
     id: 'free-consultations',
     title: 'Free Consultations',
@@ -137,71 +141,6 @@ export const CATEGORIES = [
       { name: 'Full Face & Neck', price: '£500' },
       { name: 'Vaginal Tightening & Urinary Incontinence Treatment', price: '£300' },
       { name: 'Fungal Nail Infection Treatment (Onychomycosis)', price: '£200' },
-    ],
-  },
-];
-
-export const PROCEDURES = [
-  {
-    title: 'Anti-Wrinkle (Botox)',
-    paragraphs: [
-      'Anti-Wrinkle is a remarkable solution for addressing the signs of ageing on your skin. This injectable treatment effectively targets ageing concerns such as wrinkles, sagging skin, laugh lines, and facial expression wrinkles.',
-      'By precisely injecting small amounts into specific muscle areas, Anti-Wrinkle gently diminishes fine lines while naturally relaxing muscles. The result? Enhanced skin youthfulness and firmness, with a noticeable reduction in wrinkles.',
-    ],
-  },
-  {
-    title: 'Profhilo',
-    paragraphs: [
-      "Experience the transformative power of Profhilo, a groundbreaking skin bio-remodelling treatment. It stimulates your skin's elastin and collagen, resulting in a lifted and radiant complexion.",
-    ],
-  },
-  {
-    title: 'Spider Vein Removal',
-    paragraphs: [
-      'Sclerotherapy is a minimally invasive treatment that involves injecting a solution into spider veins, causing them to collapse and fade away. This effective procedure improves the appearance of the legs by reducing visible veins and restoring smoother skin.',
-    ],
-  },
-  {
-    title: 'Endolift',
-    paragraphs: [
-      'Endolift is a minimally invasive, non-surgical laser procedure designed to tighten skin, promote collagen production, and melt small pockets of fat, primarily on the face, neck, and jawline. It uses a hair-thin fibre optic cable inserted under the skin, requiring no incisions, offering minimal downtime.',
-    ],
-  },
-  {
-    title: 'Platelet-Rich Plasma (PRP)',
-    paragraphs: [
-      "Platelet-Rich Plasma (PRP) therapy is a minimally invasive, autologous procedure that uses a patient's own concentrated blood platelets to accelerate healing in injured tendons, ligaments, joints, or skin.",
-    ],
-    subsections: [
-      { label: 'Hair Loss:', text: "PRP is injected into the scalp to stimulate hair follicles, promoting hair regrowth and improving the thickness and density of hair by encouraging the body's natural healing process." },
-      { label: 'Facial Rejuvenation:', text: 'PRP is applied to the face to stimulate collagen production and rejuvenate the skin, helping to reduce fine lines, wrinkles, and improve overall skin tone and texture.' },
-      { label: 'Under Eye Rejuvenation:', text: 'PRP is used to treat dark circles, puffiness, and fine lines around the under-eye area by encouraging cell regeneration and boosting collagen production, restoring a refreshed appearance.' },
-    ],
-  },
-  {
-    title: 'Microneedling',
-    paragraphs: [
-      "Microneedling is a minimally invasive cosmetic procedure that uses fine needles to create tiny punctures in the skin, triggering the body's natural wound-healing process. This stimulates collagen and elastin production, which improves skin texture, reduces wrinkles, scars, acne pitting, and stretch marks, and can treat hair loss.",
-    ],
-  },
-  {
-    title: 'Vitamin Treatments',
-    subsections: [
-      { label: 'Vitamin B12:', text: 'Boosts energy, supports brain function, and improves mood.' },
-      { label: 'Vitamin D:', text: 'Strengthens bones, supports immune health, and enhances mood.' },
-      { label: 'Vitamin C:', text: 'Boosts immunity, improves skin health, and supports collagen production.' },
-    ],
-  },
-  {
-    title: 'Weight Loss Consultation — GLP-1 Therapy',
-    paragraphs: [
-      'A tailored consultation to assess your suitability for GLP-1 treatments, including Mounjaro, Ozempic, and Wegovy. These prescription medications help regulate appetite, improve metabolism, and support sustainable weight loss. The consultation includes a full health assessment, personalised treatment plan, and ongoing support to help you achieve your weight loss goals safely and effectively.',
-    ],
-  },
-  {
-    title: 'Dermal Fillers',
-    paragraphs: [
-      'Dermal fillers are a popular choice for those seeking facial contouring through a safe, non-invasive approach. Crafted from natural substances, these fillers are skilfully injected to add volume, reduce wrinkles, or enhance specific features, resulting in plump, youthful skin. At La Derma Aesthetic Clinic, we believe that every face tells a unique story, and our dermal filler treatments help you shape that narrative.',
     ],
   },
 ];

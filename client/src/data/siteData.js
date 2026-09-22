@@ -5,7 +5,9 @@ export const NAV_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/about', label: 'About' },
   { href: '/gallery', label: 'Gallery' },
-  { href: '/pricing', label: 'Treatments' },
+  { href: '/pricing', label: 'Treatments & Pricing', dropdown: true },
+  { href: '/reviews', label: 'Reviews' },
+  { href: '/location', label: 'Location' },
 ];
 
 export const LOGO_URL =
@@ -39,3 +41,28 @@ export const CLINIC_ADDRESS = {
   googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=21+Jackson+St%2C+Gateshead+NE8+1EE',
   googleMapsEmbedSrc: 'https://www.google.com/maps?q=21+Jackson+St%2C+Gateshead+NE8+1EE&output=embed',
 };
+
+export const CLINIC_PHONE = '07745 756448';
+export const CLINIC_PHONE_HREF = 'tel:+447745756448';
+
+export const SOCIAL_LINKS = {
+  facebook: 'https://www.facebook.com/people/La-Derma-Aesthetic-Clinic/100085383892345/',
+  instagram: 'https://www.instagram.com/ladermaaesthetic',
+};
+
+// Footer-only link groups — "Company" is about/reputation-facing pages,
+// "Explore" is the treatment/booking-facing pages. Kept separate from
+// NAV_LINKS since the footer's grouping differs from the header's.
+export const FOOTER_COMPANY_LINKS = [
+  { href: '/about', label: 'About Us' },
+  { href: '/reviews', label: 'Reviews' },
+  { href: '/location', label: 'Location' },
+  { href: '/gallery', label: 'Gallery' },
+];
+
+export const FOOTER_EXPLORE_LINKS = [
+  { href: '/pricing', label: 'Treatments & Pricing' },
+  { href: '/booking', label: 'Book a Consultation' },
+  { href: '/account', label: 'My Account' },
+  { href: '/', label: 'Home' },
+];

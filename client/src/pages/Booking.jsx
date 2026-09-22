@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import IntroHero from '../components/IntroHero';
 import { CLINIC_ADDRESS } from '../data/siteData';
+import { useAuth } from '../context/AuthContext';
 import './Booking.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
@@ -27,6 +29,8 @@ function formatDateLabel(dateStr) {
 }
 
 export default function Booking() {
+  const { client } = useAuth();
+
   const [status, setStatus] = useState(null); // { connected, consultationMinutes, timezone, treatments }
   const [statusLoading, setStatusLoading] = useState(true);
   const [statusError, setStatusError] = useState(null);
@@ -41,6 +45,19 @@ export default function Booking() {
   const [formErrors, setFormErrors] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [confirmed, setConfirmed] = useState(null);
+
+  // Pre-fill the form for a signed-in client so they don't have to retype
+  // their own details every visit. Only fills fields the person hasn't
+  // already started typing into, and only runs once the account is known.
+  useEffect(() => {
+    if (!client) return;
+    setForm((f) => ({
+      ...f,
+      name: f.name || client.name || '',
+      email: f.email || client.email || '',
+      phone: f.phone || client.phone || '',
+    }));
+  }, [client]);
 
   // Load public status (connected? which treatments? timezone?) once on mount.
   useEffect(() => {
@@ -97,6 +114,8 @@ export default function Booking() {
     try {
       const res = await fetch(`${API_BASE}/api/bookings`, {
         method: 'POST',
+        credentials: 'include', // so a signed-in client's session cookie reaches the
+        // server and this booking gets linked to their account automatically
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ startISO: selectedSlot, ...form }),
       });
@@ -195,6 +214,13 @@ export default function Booking() {
                 at {formatTime(confirmed.start.dateTime, status.timezone)}.
               </p>
               <p>A calendar invite has been sent to {form.email}. We look forward to seeing you.</p>
+              {client && (
+                <p>
+                  <NavLink to="/account" className="btn btn-outline" style={{ marginTop: 8 }}>
+                    View in My Account
+                  </NavLink>
+                </p>
+              )}
             </div>
           </div>
         </section>

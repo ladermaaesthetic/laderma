@@ -222,9 +222,16 @@ you'll need:
   `GOOGLE_REDIRECT_URI` and `CLIENT_ORIGIN` in the server's environment,
   and `VITE_API_BASE` in the client's environment, to match.
 - If hosting the server on a platform with an ephemeral filesystem (e.g.
-  Render's free tier), the Google Calendar connection will be lost on
-  every redeploy unless you also set `GOOGLE_TOKEN_JSON` — see the note
-  in `server/.env.example` for details.
+  Render's free tier), admin accounts, treatment pricing, and client
+  accounts/bookings are lost on every redeploy or restart **unless** you
+  set `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` (a free hosted SQL
+  database — no credit card needed, no code changes, works on the free
+  tier). Without either that or a persistent disk (`DATA_DIR`, needs a
+  paid Render instance), this data resets on every deploy. See the "Data
+  persistence" section in `server/.env.example` for full setup steps for
+  either option. The Google Calendar token is the one piece of this that
+  has its own separate, simpler env-var workaround (`GOOGLE_TOKEN_JSON`)
+  since it's a single value rather than a growing table.
 - `client/public/_redirects` is required for Netlify (or `client/public/vercel.json`
   for Vercel, if you switch) so that refreshing any page other than the
   homepage doesn't 404 — this is already included, no action needed

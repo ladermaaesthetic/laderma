@@ -19,17 +19,58 @@ import {
 import { buildBookingICS } from './ics.js';
 import { bootstrapAdminIfNeeded } from './adminAuth.js';
 import { sessionMiddleware, requireAdminAuth, registerAdminAuthRoutes } from './adminSession.js';
+import {
+  seedFromStaticDataIfEmpty,
+  getAllCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  reorderCategories,
+  createItem,
+  updateItem,
+  deleteItem,
+  reorderItems,
+} from './pricingStore.js';
+import { STATIC_SEED_CATEGORIES } from './pricingSeed.js';
+import {
+  clientSessionMiddleware,
+  requireClientAuth,
+  registerClientAuthRoutes,
+} from './clientSession.js';
+import {
+  getClientById,
+  linkBookingToClient,
+  getBookingLinksForClient,
+  markBookingLinkCancelled,
+} from './clientStore.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
 
-app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
+// CLIENT_ORIGIN can be a single URL or a comma-separated list, e.g.
+// "https://ladermaclinic.netlify.app,https://test-branch--ladermaclinic.netlify.app"
+// — this lets a Netlify branch deploy (its own origin) talk to the same
+// server as production without opening CORS up to everyone.
+const CLIENT_ORIGINS = (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin(origin, callback) {
+    // No Origin header (e.g. curl, server-to-server, some mobile clients) — allow.
+    if (!origin) return callback(null, true);
+    if (CLIENT_ORIGINS.includes(origin)) return callback(null, true);
+    callback(new Error(`Not allowed by CORS: ${origin}`));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 app.use(sessionMiddleware());
+app.use(clientSessionMiddleware());
 
-bootstrapAdminIfNeeded();
 registerAdminAuthRoutes(app);
+registerClientAuthRoutes(app);
 
 const TREATMENT_OPTIONS = [
   'Laser Hair Consultation',
@@ -170,6 +211,23 @@ app.post('/api/bookings', async (req, res) => {
       notes: (notes || '').trim(),
     });
 
+    // If the person booking is signed in to a client account, record this
+    // booking against their account so it shows up in "My Bookings" —
+    // guest (not-signed-in) bookings still work exactly as before, just
+    // without that link.
+    if (req.session && req.session.clientId) {
+      try {
+        await linkBookingToClient({
+          clientId: req.session.clientId,
+          eventId: event.id,
+          treatment,
+          startISO: event.start.dateTime,
+        });
+      } catch (err) {
+        console.error('Failed to link booking to client account:', err);
+      }
+    }
+
     res.status(201).json({
       confirmed: true,
       eventId: event.id,
@@ -226,6 +284,91 @@ app.get('/api/bookings/:id/calendar.ics', async (req, res) => {
     }
     console.error('Failed to serve .ics for booking:', req.params.id, err);
     res.status(404).send('Booking not found.');
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Client accounts — a logged-in client can see their own upcoming and past
+// appointments and cancel an upcoming one. This deliberately never exposes
+// other clients' bookings: everything here is scoped to req.session.clientId,
+// looked up against the local client_bookings link table (Calendar itself
+// has no concept of "which client owns this event").
+// ---------------------------------------------------------------------------
+app.get('/api/account/me', requireClientAuth, async (req, res) => {
+  const client = await getClientById(req.session.clientId);
+  if (!client) return res.status(401).json({ error: 'Not authenticated.' });
+  res.json({ client });
+});
+
+app.get('/api/account/bookings', requireClientAuth, async (req, res) => {
+  try {
+    const links = await getBookingLinksForClient(req.session.clientId);
+    const now = Date.now();
+
+    // Cross-check each linked booking against the live calendar event, so
+    // a booking cancelled from the admin panel (which deletes the Calendar
+    // event but doesn't touch this table) doesn't linger as "upcoming"
+    // forever — it's marked cancelled here the moment we notice it's gone.
+    // Only a genuine "this event no longer exists" response (Google
+    // returns 404/410 for a deleted event) counts as gone — any other
+    // error (calendar temporarily disconnected, a transient API error)
+    // is treated as "unknown, assume still valid" so a connectivity
+    // hiccup can never wrongly mark a real booking as cancelled.
+    const results = await Promise.all(
+      links.map(async (link) => {
+        let confirmedGone = false;
+        if (!link.cancelled) {
+          try {
+            await getBookingById(link.eventId);
+          } catch (err) {
+            const status = err.code || err.status || err.response?.status;
+            if (status === 404 || status === 410) {
+              confirmedGone = true;
+            }
+            // Any other error (including CALENDAR_NOT_CONNECTED) is
+            // swallowed here — we simply can't verify right now, so we
+            // don't penalize the booking for it.
+          }
+        }
+        return {
+          eventId: link.eventId,
+          treatment: link.treatment,
+          startISO: link.startISO,
+          cancelled: Boolean(link.cancelled) || confirmedGone,
+        };
+      })
+    );
+
+    const upcoming = results.filter((b) => !b.cancelled && new Date(b.startISO).getTime() >= now);
+    const past = results.filter((b) => b.cancelled || new Date(b.startISO).getTime() < now);
+
+    upcoming.sort((a, b) => new Date(a.startISO) - new Date(b.startISO));
+    past.sort((a, b) => new Date(b.startISO) - new Date(a.startISO));
+
+    res.json({ upcoming, past });
+  } catch (err) {
+    console.error('Failed to load client bookings:', err);
+    res.status(500).json({ error: 'Could not load your bookings.' });
+  }
+});
+
+app.delete('/api/account/bookings/:eventId', requireClientAuth, async (req, res) => {
+  try {
+    // markBookingLinkCancelled throws if this event isn't linked to the
+    // signed-in client, so a client can never cancel someone else's
+    // booking by guessing an event id.
+    await markBookingLinkCancelled(req.session.clientId, req.params.eventId);
+    await cancelBooking(req.params.eventId);
+    res.json({ cancelled: true });
+  } catch (err) {
+    if (err.message === 'This booking is not linked to your account.') {
+      return res.status(403).json({ error: err.message });
+    }
+    if (err.message === 'CALENDAR_NOT_CONNECTED') {
+      return res.status(503).json({ error: 'Calendar is not connected.' });
+    }
+    console.error('Failed to cancel client booking:', req.params.eventId, err);
+    res.status(500).json({ error: 'Could not cancel the booking.' });
   }
 });
 
@@ -319,10 +462,124 @@ app.get('/api/admin/availability', requireAdminAuth, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`La Derma booking API running on http://localhost:${PORT}`);
-  console.log(`Calendar connected: ${isCalendarConnected()}`);
-  if (!isCalendarConnected()) {
-    console.log(`Visit http://localhost:${PORT}/api/auth/connect to connect Google Calendar.`);
+// ---------------------------------------------------------------------------
+// Public pricing — the Treatments & Pricing page fetches the live list of
+// categories and items from here instead of a static bundled file, so
+// admin edits show up immediately without a redeploy.
+// ---------------------------------------------------------------------------
+app.get('/api/pricing', async (req, res) => {
+  try {
+    res.json({ categories: await getAllCategories() });
+  } catch (err) {
+    console.error('Failed to load pricing:', err);
+    res.status(500).json({ error: 'Could not load pricing.' });
   }
 });
+
+// ---------------------------------------------------------------------------
+// Admin pricing management — full CRUD on treatment categories and their
+// individual items/prices, behind the same admin session auth as bookings.
+// ---------------------------------------------------------------------------
+app.post('/api/admin/pricing/categories', requireAdminAuth, async (req, res) => {
+  const { title, description } = req.body || {};
+  try {
+    const category = await createCategory({ title, description });
+    res.status(201).json({ category });
+  } catch (err) {
+    res.status(400).json({ error: err.message || 'Could not create category.' });
+  }
+});
+
+app.put('/api/admin/pricing/categories/:id', requireAdminAuth, async (req, res) => {
+  const { title, description } = req.body || {};
+  try {
+    const category = await updateCategory(req.params.id, { title, description });
+    res.json({ category });
+  } catch (err) {
+    const status = err.message === 'Category not found.' ? 404 : 400;
+    res.status(status).json({ error: err.message || 'Could not update category.' });
+  }
+});
+
+app.delete('/api/admin/pricing/categories/:id', requireAdminAuth, async (req, res) => {
+  try {
+    await deleteCategory(req.params.id);
+    res.json({ deleted: true });
+  } catch (err) {
+    const status = err.message === 'Category not found.' ? 404 : 400;
+    res.status(status).json({ error: err.message || 'Could not delete category.' });
+  }
+});
+
+app.put('/api/admin/pricing/categories/reorder', requireAdminAuth, async (req, res) => {
+  const { orderedIds } = req.body || {};
+  try {
+    await reorderCategories(orderedIds);
+    res.json({ categories: await getAllCategories() });
+  } catch (err) {
+    res.status(400).json({ error: err.message || 'Could not reorder categories.' });
+  }
+});
+
+app.post('/api/admin/pricing/categories/:categoryId/items', requireAdminAuth, async (req, res) => {
+  const { name, price } = req.body || {};
+  try {
+    const item = await createItem(req.params.categoryId, { name, price });
+    res.status(201).json({ item });
+  } catch (err) {
+    const status = err.message === 'Category not found.' ? 404 : 400;
+    res.status(status).json({ error: err.message || 'Could not create item.' });
+  }
+});
+
+app.put('/api/admin/pricing/items/:itemId', requireAdminAuth, async (req, res) => {
+  const { name, price } = req.body || {};
+  try {
+    const item = await updateItem(req.params.itemId, { name, price });
+    res.json({ item });
+  } catch (err) {
+    const status = err.message === 'Item not found.' ? 404 : 400;
+    res.status(status).json({ error: err.message || 'Could not update item.' });
+  }
+});
+
+app.delete('/api/admin/pricing/items/:itemId', requireAdminAuth, async (req, res) => {
+  try {
+    await deleteItem(req.params.itemId);
+    res.json({ deleted: true });
+  } catch (err) {
+    const status = err.message === 'Item not found.' ? 404 : 400;
+    res.status(status).json({ error: err.message || 'Could not delete item.' });
+  }
+});
+
+app.put('/api/admin/pricing/categories/:categoryId/items/reorder', requireAdminAuth, async (req, res) => {
+  const { orderedItemIds } = req.body || {};
+  try {
+    await reorderItems(req.params.categoryId, orderedItemIds);
+    const categories = await getAllCategories();
+    res.json({ category: categories.find((c) => c.id === req.params.categoryId) });
+  } catch (err) {
+    res.status(400).json({ error: err.message || 'Could not reorder items.' });
+  }
+});
+
+async function start() {
+  // Bootstrap the first admin account and seed pricing data before the
+  // server starts accepting requests — both now hit the database (Turso
+  // or local file), so they need to be awaited rather than fired at
+  // import time, otherwise an early request could race ahead of the
+  // tables even existing yet.
+  await bootstrapAdminIfNeeded();
+  await seedFromStaticDataIfEmpty(STATIC_SEED_CATEGORIES);
+
+  app.listen(PORT, () => {
+    console.log(`La Derma booking API running on http://localhost:${PORT}`);
+    console.log(`Calendar connected: ${isCalendarConnected()}`);
+    if (!isCalendarConnected()) {
+      console.log(`Visit http://localhost:${PORT}/api/auth/connect to connect Google Calendar.`);
+    }
+  });
+}
+
+start();

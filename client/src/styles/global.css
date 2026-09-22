@@ -31,6 +31,23 @@
   --cream-bg: #FAF6EF;
   --white: #FFFFFF;
 
+  /* Slate — a muted steel-blue taken from the clinic's own staff uniform
+     colour, used as a solid fill for the site's chrome: the header bar,
+     sticky treatment-category nav, and footer. It's dark enough that it
+     needs its own light text colours (below) rather than the navy ink
+     used on the light cream page background — navy-on-slate doesn't have
+     enough contrast to read comfortably. Everywhere else on the site
+     (headings, body copy, cards, buttons) keeps using navy/gold exactly
+     as before; slate is scoped to these three chrome regions only. */
+  --slate: #44597D;
+  --slate-deep: #344563;
+  --slate-line: rgba(68,89,125,0.35);
+  /* Text colours for content sitting directly on a --slate background. */
+  --on-slate-ink: #FDFBF7;
+  --on-slate-ink-soft: rgba(253,251,247,0.82);
+  --on-slate-ink-faint: rgba(253,251,247,0.6);
+  --on-slate-gold: #E8CE9C; /* lighter gold tint — the standard --gold is too close in value to slate to stand out on it */
+
   /* Surface system — three deliberate translucency levels instead of a
      dozen one-off rgba values, so every card/panel across the site reads
      as part of one consistent material rather than accumulated tweaks.

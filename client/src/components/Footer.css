@@ -1,12 +1,16 @@
 .site-footer{
-  border-top:1px solid var(--line);
-  background:var(--surface-2);
+  background:var(--slate);
 }
 .footer-inner{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:40px;
+  padding:56px 0 32px;
+}
+.footer-brand-col{
   display:flex;
   flex-direction:column;
-  gap:32px;
-  padding:48px 0 32px;
+  gap:20px;
 }
 .footer-brand{
   display:flex;
@@ -19,7 +23,7 @@
   width:44px;
   overflow:hidden;
   border-radius:50%;
-  border:1px solid var(--line);
+  border:1px solid rgba(253,251,247,0.3);
   background:var(--white);
   padding:3px;
   flex-shrink:0;
@@ -34,13 +38,48 @@
   font-size:0.64rem;
   text-transform:uppercase;
   letter-spacing:0.3em;
-  color:var(--gold-deep);
+  color:var(--on-slate-gold);
 }
 .footer-brand-name{
   margin-top:2px;
   font-family:'Cormorant Garamond', serif;
   font-size:1.25rem;
-  color:var(--navy-ink);
+  color:var(--on-slate-ink);
+}
+
+.footer-contact{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.footer-contact a{
+  font-size:0.88rem;
+  color:var(--on-slate-ink-soft);
+  transition:color .3s ease;
+}
+.footer-contact a:hover{color:var(--on-slate-gold);}
+
+.footer-social{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.footer-social-icon{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:38px;
+  width:38px;
+  border-radius:50%;
+  border:1px solid rgba(253,251,247,0.28);
+  color:var(--on-slate-ink);
+  transition:background .25s ease, border-color .25s ease, color .25s ease, transform .25s ease;
+}
+.footer-social-icon:hover{
+  background:rgba(253,251,247,0.14);
+  border-color:rgba(253,251,247,0.4);
+  color:var(--on-slate-gold);
+  transform:translateY(-2px);
 }
 
 .footer-nav-block{}
@@ -48,7 +87,7 @@
   font-size:0.68rem;
   text-transform:uppercase;
   letter-spacing:0.36em;
-  color:var(--navy-ink-ghost);
+  color:var(--on-slate-ink-faint);
 }
 .footer-nav{
   margin-top:16px;
@@ -60,16 +99,20 @@
   font-size:0.85rem;
   text-transform:uppercase;
   letter-spacing:0.18em;
-  color:var(--navy-ink-soft);
+  color:var(--on-slate-ink-soft);
   transition:color .3s ease;
 }
-.footer-nav a:hover{color:var(--gold-deep);}
+.footer-nav a:hover{color:var(--on-slate-gold);}
 
 .footer-bottom{
-  border-top:1px solid var(--line);
+  border-top:1px solid rgba(253,251,247,0.18);
   padding:20px 0;
 }
 .footer-bottom p{
   font-size:0.78rem;
-  color:var(--navy-ink-ghost);
+  color:var(--on-slate-ink-faint);
+}
+
+@media (min-width: 720px){
+  .footer-inner{grid-template-columns:1.3fr 1fr 1fr;}
 }
