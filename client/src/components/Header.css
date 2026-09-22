@@ -48,16 +48,24 @@
 }
 .brand-eyebrow{
   font-family:'Manrope', sans-serif;
-  font-size:0.68rem;
+  font-size:0.62rem;
   text-transform:uppercase;
-  letter-spacing:0.42em;
+  letter-spacing:0.16em;
+  white-space:nowrap;
   color:var(--on-slate-gold);
 }
 .brand-name{
   font-family:'Cormorant Garamond', serif;
   font-size:1.5rem;
-  letter-spacing:0.08em;
+  letter-spacing:0.04em;
+  white-space:nowrap;
   color:var(--on-slate-ink);
+}
+/* Hide the small eyebrow line entirely below ~360px, where there just
+   isn't room next to the logo and nav toggle for a second line of text
+   without it wrapping no matter how tight the tracking gets. */
+@media (max-width: 360px){
+  .brand-eyebrow{display:none;}
 }
 
 .mainnav{

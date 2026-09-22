@@ -78,20 +78,12 @@
 }
 
 *{box-sizing:border-box;}
-/* The root font-size is what every `rem` unit across the site scales
-   from (hero headline, section titles, stat numbers, spacing — most of
-   the site is sized in rem, not px). Raising only `body`'s font-size
-   earlier did nothing for any of that, since rem always tracks `html`,
-   never `body`. Test-branch reads roughly a notch larger everywhere at
-   once — nav, headline, copy, cards, gaps together — which is a root
-   size difference, not a handful of one-off component tweaks, so it's
-   fixed here instead. */
+/* Root left at the browser default (16px) — the earlier "test-branch
+   looks bigger" comparison turned out to be a browser zoom-level
+   difference (confirmed by the user), not an actual CSS size gap, so
+   no root-level scaling is needed here. */
 html{
   scroll-behavior:smooth;
-  font-size:17.5px;
-}
-@media (max-width: 899px){
-  html{font-size:18.5px;}
 }
 body{
   margin:0;
