@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { NAV_LINKS, LOGO_URL } from '../data/siteData';
+import { NAV_LINKS, LOGO_URL, IMAGES } from '../data/siteData';
 import { useAuth } from '../context/AuthContext';
 import './Header.css';
 
@@ -15,10 +15,18 @@ function AccountIcon() {
   );
 }
 
+// Split the flat category list into evenly-sized columns for the desktop
+// mega-menu, the way Therapie lays "Cosmetic Injections / Fillers / Skin
+// Boosters" out as side-by-side columns rather than one long list.
+function splitIntoColumns(list, columnCount) {
+  const columns = Array.from({ length: columnCount }, () => []);
+  list.forEach((item, i) => columns[i % columnCount].push(item));
+  return columns.filter((col) => col.length > 0);
+}
+
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [mobileTreatmentsOpen, setMobileTreatmentsOpen] = useState(false);
   const [mobileActiveCategoryId, setMobileActiveCategoryId] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -49,7 +57,6 @@ export default function Header() {
     const onClick = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
-        setActiveCategoryId(null);
       }
     };
     document.addEventListener('mousedown', onClick);
@@ -68,12 +75,12 @@ export default function Header() {
   // from elsewhere (navigate, then let the browser's hash scroll handle it).
   const goToCategory = (categoryId) => {
     setDropdownOpen(false);
-    setActiveCategoryId(null);
     closeMenu();
     navigate(`/pricing#${categoryId}`);
   };
 
-  const activeCategory = categories.find((cat) => cat.id === activeCategoryId) || null;
+  const categoryColumns = splitIntoColumns(categories, 3);
+  const mobileActiveCategory = categories.find((cat) => cat.id === mobileActiveCategoryId) || null;
 
   return (
     <>
@@ -97,11 +104,11 @@ export default function Header() {
                   key={link.href}
                   ref={dropdownRef}
                   onMouseEnter={() => setDropdownOpen(true)}
-                  onMouseLeave={() => { setDropdownOpen(false); setActiveCategoryId(null); }}
+                  onMouseLeave={() => setDropdownOpen(false)}
                 >
                   <NavLink
                     to={link.href}
-                    className={({ isActive }) => `mainnav-dropdown-trigger${isActive ? ' active' : ''}`}
+                    className={({ isActive }) => `mainnav-dropdown-trigger${isActive ? ' active' : ''}${dropdownOpen ? ' open' : ''}`}
                     onClick={(e) => {
                       // On touch devices there's no hover, so a tap opens
                       // the dropdown first rather than navigating straight
@@ -121,45 +128,43 @@ export default function Header() {
 
                   {dropdownOpen && categories.length > 0 && (
                     <div className="mainnav-dropdown">
-                      <div className="mainnav-dropdown-panel">
-                        <p className="mainnav-dropdown-label">Browse by category</p>
-                        {categories.map((cat) => (
-                          <button
-                            key={cat.id}
-                            type="button"
-                            className={`mainnav-dropdown-item${activeCategoryId === cat.id ? ' active' : ''}`}
-                            onMouseEnter={() => setActiveCategoryId(cat.id)}
-                            onFocus={() => setActiveCategoryId(cat.id)}
-                            onClick={() => goToCategory(cat.id)}
-                          >
-                            {cat.title}
-                            {cat.items?.length > 0 && (
-                              <svg className="mainnav-dropdown-item-caret" width="7" height="12" viewBox="0 0 7 12" fill="none">
-                                <path d="M1 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            )}
-                          </button>
+                      <div className="mainnav-dropdown-columns">
+                        {categoryColumns.map((column, colIndex) => (
+                          <div className="mainnav-dropdown-column" key={colIndex}>
+                            {column.map((cat) => (
+                              <div key={cat.id} className="mainnav-dropdown-group">
+                                <button
+                                  type="button"
+                                  className="mainnav-dropdown-group-title"
+                                  onClick={() => goToCategory(cat.id)}
+                                >
+                                  {cat.title}
+                                </button>
+                                {cat.items?.slice(0, 6).map((item) => (
+                                  <button
+                                    key={item.id}
+                                    type="button"
+                                    className="mainnav-dropdown-item"
+                                    onClick={() => goToCategory(cat.id)}
+                                  >
+                                    {item.name}
+                                  </button>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
                         ))}
                       </div>
 
-                      {activeCategory && activeCategory.items?.length > 0 && (
-                        <div className="mainnav-dropdown-subpanel">
-                          <p className="mainnav-dropdown-label">{activeCategory.title}</p>
-                          <div className="mainnav-dropdown-sublist">
-                            {activeCategory.items.map((item) => (
-                              <button
-                                key={item.id}
-                                type="button"
-                                className="mainnav-dropdown-subitem"
-                                onClick={() => goToCategory(activeCategory.id)}
-                              >
-                                <span>{item.name}</span>
-                                <span className="mainnav-dropdown-subitem-price">{item.price}</span>
-                              </button>
-                            ))}
-                          </div>
+                      <div className="mainnav-dropdown-promo">
+                        <img src={IMAGES.treatmentRoom} alt="" />
+                        <div className="mainnav-dropdown-promo-copy">
+                          <p className="mainnav-dropdown-promo-title">Not sure where to start?</p>
+                          <NavLink to="/booking" className="btn btn-gold" onClick={() => setDropdownOpen(false)}>
+                            Book a Free Consultation
+                          </NavLink>
                         </div>
-                      )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -203,96 +208,110 @@ export default function Header() {
         aria-hidden="true"
       />
       <div className={`mobile-nav${menuOpen ? ' open' : ''}`}>
-        <div className="mobile-nav-inner">
-          {NAV_LINKS.map((link) =>
-            link.dropdown ? (
-              <div className="mobile-nav-dropdown" key={link.href}>
-                <div className="mobile-nav-dropdown-head">
-                  <NavLink
-                    to={link.href}
-                    className={({ isActive }) => (isActive ? 'active' : undefined)}
-                    onClick={closeMenu}
-                  >
-                    {link.label}
-                  </NavLink>
+        {/* Root panel — the main link list, with "Treatments & Pricing"
+            opening the category panel instead of expanding in place. */}
+        <div className={`mobile-nav-panel${mobileTreatmentsOpen ? ' mobile-nav-panel-back' : ''}`}>
+          <div className="mobile-nav-inner">
+            {NAV_LINKS.map((link) =>
+              link.dropdown ? (
+                <button
+                  key={link.href}
+                  type="button"
+                  className="mobile-nav-row"
+                  onClick={() => setMobileTreatmentsOpen(true)}
+                >
+                  {link.label}
                   {categories.length > 0 && (
-                    <button
-                      type="button"
-                      className={`mobile-nav-dropdown-toggle${mobileTreatmentsOpen ? ' open' : ''}`}
-                      aria-label="Show treatment categories"
-                      onClick={() => setMobileTreatmentsOpen((v) => !v)}
-                    >
-                      <svg width="14" height="8" viewBox="0 0 10 6" fill="none">
-                        <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </button>
+                    <svg width="9" height="14" viewBox="0 0 9 14" fill="none">
+                      <path d="M1 1l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   )}
-                </div>
-                {mobileTreatmentsOpen && (
-                  <div className="mobile-nav-subsection">
-                    {categories.map((cat) => (
-                      <div key={cat.id} className="mobile-nav-subsection-group">
-                        <div className="mobile-nav-subsection-head">
-                          <button
-                            type="button"
-                            className="mobile-nav-subsection-item"
-                            onClick={() => goToCategory(cat.id)}
-                          >
-                            {cat.title}
-                          </button>
-                          {cat.items?.length > 0 && (
-                            <button
-                              type="button"
-                              className={`mobile-nav-subsection-toggle${mobileActiveCategoryId === cat.id ? ' open' : ''}`}
-                              aria-label={`Show ${cat.title} treatments`}
-                              onClick={() =>
-                                setMobileActiveCategoryId((v) => (v === cat.id ? null : cat.id))
-                              }
-                            >
-                              <svg width="12" height="7" viewBox="0 0 10 6" fill="none">
-                                <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            </button>
-                          )}
-                        </div>
-                        {mobileActiveCategoryId === cat.id && cat.items?.length > 0 && (
-                          <div className="mobile-nav-subsubsection">
-                            {cat.items.map((item) => (
-                              <button
-                                key={item.id}
-                                type="button"
-                                className="mobile-nav-subsubsection-item"
-                                onClick={() => goToCategory(cat.id)}
-                              >
-                                <span>{item.name}</span>
-                                <span className="mobile-nav-subsubsection-price">{item.price}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                </button>
+              ) : (
+                <NavLink
+                  key={link.href}
+                  to={link.href}
+                  end={link.href === '/'}
+                  className={({ isActive }) => (isActive ? 'active' : undefined)}
+                  onClick={closeMenu}
+                >
+                  {link.label}
+                </NavLink>
+              )
+            )}
+            <NavLink to="/account" className={({ isActive }) => (isActive ? 'active' : undefined)} onClick={closeMenu}>
+              {client ? `My Account (${client.name.split(' ')[0]})` : 'Sign In'}
+            </NavLink>
+            <NavLink to="/booking" className="btn mobile-nav-cta" onClick={closeMenu}>
+              Book Consultation
+            </NavLink>
+          </div>
+        </div>
+
+        {/* Category panel — shown straight away once "Treatments & Pricing"
+            is tapped, with a Back row at the top, matching the reference
+            site's slide-to-next-panel pattern rather than an accordion. */}
+        <div className={`mobile-nav-panel mobile-nav-panel-secondary${mobileTreatmentsOpen ? ' mobile-nav-panel-active' : ''}`}>
+          <div className="mobile-nav-inner">
+            <button
+              type="button"
+              className="mobile-nav-back"
+              onClick={() => { setMobileTreatmentsOpen(false); setMobileActiveCategoryId(null); }}
+            >
+              <svg width="9" height="14" viewBox="0 0 9 14" fill="none">
+                <path d="M8 1L2 7l6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Back
+            </button>
+
+            {!mobileActiveCategory ? (
+              <>
+                <p className="mobile-nav-panel-title">Treatments &amp; Pricing</p>
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    className="mobile-nav-row"
+                    onClick={() => setMobileActiveCategoryId(cat.id)}
+                  >
+                    {cat.title}
+                    {cat.items?.length > 0 && (
+                      <svg width="9" height="14" viewBox="0 0 9 14" fill="none">
+                        <path d="M1 1l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+                <NavLink to="/pricing" className="mobile-nav-row mobile-nav-row-muted" onClick={closeMenu}>
+                  View full price list
+                </NavLink>
+              </>
             ) : (
-              <NavLink
-                key={link.href}
-                to={link.href}
-                end={link.href === '/'}
-                className={({ isActive }) => (isActive ? 'active' : undefined)}
-                onClick={closeMenu}
-              >
-                {link.label}
-              </NavLink>
-            )
-          )}
-          <NavLink to="/account" className={({ isActive }) => (isActive ? 'active' : undefined)} onClick={closeMenu}>
-            {client ? `My Account (${client.name.split(' ')[0]})` : 'Sign In'}
-          </NavLink>
-          <NavLink to="/booking" className="btn mobile-nav-cta" onClick={closeMenu}>
-            Book Consultation
-          </NavLink>
+              <>
+                <button
+                  type="button"
+                  className="mobile-nav-subback"
+                  onClick={() => setMobileActiveCategoryId(null)}
+                >
+                  <svg width="9" height="14" viewBox="0 0 9 14" fill="none">
+                    <path d="M8 1L2 7l6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  {mobileActiveCategory.title}
+                </button>
+                {mobileActiveCategory.items?.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="mobile-nav-subitem-row"
+                    onClick={() => goToCategory(mobileActiveCategory.id)}
+                  >
+                    <span>{item.name}</span>
+                    <span className="mobile-nav-subitem-price">{item.price}</span>
+                  </button>
+                ))}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </>

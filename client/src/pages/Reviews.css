@@ -2,7 +2,7 @@
   position:relative;
   display:flex;
   flex-direction:column;
-  gap:20px;
+  gap:40px;
   overflow:hidden;
   -webkit-mask-image:linear-gradient(to right, transparent, black 6%, black 94%, transparent);
   mask-image:linear-gradient(to right, transparent, black 6%, black 94%, transparent);
