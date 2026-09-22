@@ -19,20 +19,15 @@
 }
 .footer-brand-logo{
   display:flex;
+  align-items:center;
   height:44px;
-  width:44px;
-  overflow:hidden;
-  border-radius:50%;
-  border:1px solid rgba(253,251,247,0.3);
-  background:var(--white);
-  padding:3px;
+  width:auto;
   flex-shrink:0;
 }
 .footer-brand-logo img{
   height:100%;
-  width:100%;
-  border-radius:50%;
-  object-fit:cover;
+  width:auto;
+  object-fit:contain;
 }
 .footer-brand-eyebrow{
   font-size:0.64rem;

@@ -2,7 +2,6 @@
 // verbatim from the original site (same CDN image URLs, same copy).
 
 export const NAV_LINKS = [
-  { href: '/', label: 'Home' },
   { href: '/about', label: 'About' },
   { href: '/gallery', label: 'Gallery' },
   { href: '/pricing', label: 'Treatments & Pricing', dropdown: true },
@@ -38,7 +37,7 @@ export const CLINIC_ADDRESS = {
   city: 'Gateshead',
   postcode: 'NE8 1EE',
   full: '21 Jackson St, Gateshead NE8 1EE',
-  googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=21+Jackson+St%2C+Gateshead+NE8+1EE',
+  googleMapsUrl: 'https://maps.app.goo.gl/NBbLYePre8H9CyvD9',
   googleMapsEmbedSrc: 'https://www.google.com/maps?q=21+Jackson+St%2C+Gateshead+NE8+1EE&output=embed',
 };
 

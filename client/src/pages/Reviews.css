@@ -1,5 +1,8 @@
 .reviews-carousel{
   position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
   overflow:hidden;
   -webkit-mask-image:linear-gradient(to right, transparent, black 6%, black 94%, transparent);
   mask-image:linear-gradient(to right, transparent, black 6%, black 94%, transparent);
@@ -9,7 +12,12 @@
   display:flex;
   gap:20px;
   width:max-content;
-  animation:reviews-scroll 46s linear infinite;
+}
+.reviews-track-forward{
+  animation:reviews-scroll-forward 46s linear infinite;
+}
+.reviews-track-reverse{
+  animation:reviews-scroll-reverse 52s linear infinite;
 }
 .reviews-carousel.paused .reviews-track{
   animation-play-state:paused;
@@ -21,9 +29,13 @@
   animation-play-state:paused;
 }
 
-@keyframes reviews-scroll{
+@keyframes reviews-scroll-forward{
   from{ transform:translateX(0); }
   to{ transform:translateX(-50%); }
+}
+@keyframes reviews-scroll-reverse{
+  from{ transform:translateX(-50%); }
+  to{ transform:translateX(0); }
 }
 
 .review-card{
@@ -102,5 +114,6 @@
 }
 
 @media (prefers-reduced-motion: reduce){
-  .reviews-track{animation:none;}
+  .reviews-track-forward,
+  .reviews-track-reverse{animation:none;}
 }

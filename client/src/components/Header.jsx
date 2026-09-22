@@ -18,7 +18,9 @@ function AccountIcon() {
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [mobileTreatmentsOpen, setMobileTreatmentsOpen] = useState(false);
+  const [mobileActiveCategoryId, setMobileActiveCategoryId] = useState(null);
   const [categories, setCategories] = useState([]);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -47,6 +49,7 @@ export default function Header() {
     const onClick = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
+        setActiveCategoryId(null);
       }
     };
     document.addEventListener('mousedown', onClick);
@@ -57,6 +60,7 @@ export default function Header() {
   const closeMenu = () => {
     setMenuOpen(false);
     setMobileTreatmentsOpen(false);
+    setMobileActiveCategoryId(null);
   };
 
   // Jump straight to a category anchor on the Treatments & Pricing page,
@@ -64,9 +68,12 @@ export default function Header() {
   // from elsewhere (navigate, then let the browser's hash scroll handle it).
   const goToCategory = (categoryId) => {
     setDropdownOpen(false);
+    setActiveCategoryId(null);
     closeMenu();
     navigate(`/pricing#${categoryId}`);
   };
+
+  const activeCategory = categories.find((cat) => cat.id === activeCategoryId) || null;
 
   return (
     <>
@@ -90,7 +97,7 @@ export default function Header() {
                   key={link.href}
                   ref={dropdownRef}
                   onMouseEnter={() => setDropdownOpen(true)}
-                  onMouseLeave={() => setDropdownOpen(false)}
+                  onMouseLeave={() => { setDropdownOpen(false); setActiveCategoryId(null); }}
                 >
                   <NavLink
                     to={link.href}
@@ -114,17 +121,45 @@ export default function Header() {
 
                   {dropdownOpen && categories.length > 0 && (
                     <div className="mainnav-dropdown">
-                      <p className="mainnav-dropdown-label">Browse by category</p>
-                      {categories.map((cat) => (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          className="mainnav-dropdown-item"
-                          onClick={() => goToCategory(cat.id)}
-                        >
-                          {cat.title}
-                        </button>
-                      ))}
+                      <div className="mainnav-dropdown-panel">
+                        <p className="mainnav-dropdown-label">Browse by category</p>
+                        {categories.map((cat) => (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            className={`mainnav-dropdown-item${activeCategoryId === cat.id ? ' active' : ''}`}
+                            onMouseEnter={() => setActiveCategoryId(cat.id)}
+                            onFocus={() => setActiveCategoryId(cat.id)}
+                            onClick={() => goToCategory(cat.id)}
+                          >
+                            {cat.title}
+                            {cat.items?.length > 0 && (
+                              <svg className="mainnav-dropdown-item-caret" width="7" height="12" viewBox="0 0 7 12" fill="none">
+                                <path d="M1 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+
+                      {activeCategory && activeCategory.items?.length > 0 && (
+                        <div className="mainnav-dropdown-subpanel">
+                          <p className="mainnav-dropdown-label">{activeCategory.title}</p>
+                          <div className="mainnav-dropdown-sublist">
+                            {activeCategory.items.map((item) => (
+                              <button
+                                key={item.id}
+                                type="button"
+                                className="mainnav-dropdown-subitem"
+                                onClick={() => goToCategory(activeCategory.id)}
+                              >
+                                <span>{item.name}</span>
+                                <span className="mainnav-dropdown-subitem-price">{item.price}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -196,14 +231,46 @@ export default function Header() {
                 {mobileTreatmentsOpen && (
                   <div className="mobile-nav-subsection">
                     {categories.map((cat) => (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        className="mobile-nav-subsection-item"
-                        onClick={() => goToCategory(cat.id)}
-                      >
-                        {cat.title}
-                      </button>
+                      <div key={cat.id} className="mobile-nav-subsection-group">
+                        <div className="mobile-nav-subsection-head">
+                          <button
+                            type="button"
+                            className="mobile-nav-subsection-item"
+                            onClick={() => goToCategory(cat.id)}
+                          >
+                            {cat.title}
+                          </button>
+                          {cat.items?.length > 0 && (
+                            <button
+                              type="button"
+                              className={`mobile-nav-subsection-toggle${mobileActiveCategoryId === cat.id ? ' open' : ''}`}
+                              aria-label={`Show ${cat.title} treatments`}
+                              onClick={() =>
+                                setMobileActiveCategoryId((v) => (v === cat.id ? null : cat.id))
+                              }
+                            >
+                              <svg width="12" height="7" viewBox="0 0 10 6" fill="none">
+                                <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                        {mobileActiveCategoryId === cat.id && cat.items?.length > 0 && (
+                          <div className="mobile-nav-subsubsection">
+                            {cat.items.map((item) => (
+                              <button
+                                key={item.id}
+                                type="button"
+                                className="mobile-nav-subsubsection-item"
+                                onClick={() => goToCategory(cat.id)}
+                              >
+                                <span>{item.name}</span>
+                                <span className="mobile-nav-subsubsection-price">{item.price}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 )}

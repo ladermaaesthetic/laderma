@@ -51,11 +51,28 @@ function StarRow({ rating }) {
   );
 }
 
+function ReviewCard({ review }) {
+  return (
+    <article className="review-card">
+      <StarRow rating={review.rating} />
+      <p className="review-text">&ldquo;{review.text}&rdquo;</p>
+      <div className="review-footer">
+        <p className="review-name">{review.name}</p>
+        <p className="review-meta">{review.meta}</p>
+      </div>
+    </article>
+  );
+}
+
 export default function Reviews() {
   const [paused, setPaused] = useState(false);
-  // Duplicate the list so the CSS marquee can scroll seamlessly from the
-  // end straight back into the start with no visible jump/reset.
-  const track = [...REVIEWS, ...REVIEWS];
+  // Duplicate each row so its CSS marquee can scroll seamlessly from the
+  // end straight back into the start with no visible jump/reset. The two
+  // rows use the same review set (reordered) but animate in opposite
+  // directions, so they never look like a single synced loop.
+  const rowA = [...REVIEWS, ...REVIEWS];
+  const reversedReviews = [...REVIEWS].reverse();
+  const rowB = [...reversedReviews, ...reversedReviews];
 
   return (
     <>
@@ -73,16 +90,14 @@ export default function Reviews() {
           onMouseLeave={() => setPaused(false)}
           onTouchStart={() => setPaused((v) => !v)}
         >
-          <div className="reviews-track">
-            {track.map((review, i) => (
-              <article className="review-card" key={`${review.name}-${i}`}>
-                <StarRow rating={review.rating} />
-                <p className="review-text">&ldquo;{review.text}&rdquo;</p>
-                <div className="review-footer">
-                  <p className="review-name">{review.name}</p>
-                  <p className="review-meta">{review.meta}</p>
-                </div>
-              </article>
+          <div className="reviews-track reviews-track-forward">
+            {rowA.map((review, i) => (
+              <ReviewCard review={review} key={`a-${review.name}-${i}`} />
+            ))}
+          </div>
+          <div className="reviews-track reviews-track-reverse">
+            {rowB.map((review, i) => (
+              <ReviewCard review={review} key={`b-${review.name}-${i}`} />
             ))}
           </div>
         </div>
