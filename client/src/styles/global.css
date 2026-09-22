@@ -118,11 +118,13 @@ textarea:focus-visible{
 .container{
   max-width:1180px;
   margin:0 auto;
-  padding:0 24px;
+  /* Phones — give content real breathing room off the screen edges
+     rather than sitting flush against them. */
+  padding:0 28px;
 }
 
 @media (min-width: 480px){
-  .container{padding:0 32px;}
+  .container{padding:0 36px;}
 }
 @media (min-width: 768px){
   .container{padding:0 48px;}

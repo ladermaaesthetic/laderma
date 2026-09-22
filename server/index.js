@@ -13,6 +13,9 @@ import {
   getBookingById,
   listUpcomingBookings,
   cancelBooking,
+  createUnavailableBlock,
+  listUnavailableBlocks,
+  deleteUnavailableBlock,
   CONSULTATION_MINUTES,
   TIMEZONE,
 } from './calendar.js';
@@ -469,6 +472,52 @@ app.get('/api/admin/availability', requireAdminAuth, async (req, res) => {
     }
     console.error('Admin availability error:', err);
     res.status(500).json({ error: 'Could not load availability.' });
+  }
+});
+
+// Block out unavailable time — creates a real event on the clinic's
+// Google Calendar so it's instantly reflected in availability everywhere
+// (this booking site, and the calendar itself if checked directly).
+app.post('/api/admin/blocks', requireAdminAuth, async (req, res) => {
+  const { dateStr, allDay, startISO, endISO, label } = req.body || {};
+  try {
+    const event = await createUnavailableBlock({ dateStr, allDay, startISO, endISO, label });
+    res.status(201).json({ created: true, id: event.id, start: event.start, end: event.end });
+  } catch (err) {
+    if (err.message === 'CALENDAR_NOT_CONNECTED') {
+      return res.status(503).json({ error: 'Calendar is not connected.' });
+    }
+    if (err.message === 'INVALID_BLOCK_RANGE') {
+      return res.status(400).json({ error: 'Provide a valid date, or a start and end time where the end is after the start.' });
+    }
+    console.error('Failed to create unavailable block:', err);
+    res.status(500).json({ error: 'Could not block that time.' });
+  }
+});
+
+app.get('/api/admin/blocks', requireAdminAuth, async (req, res) => {
+  try {
+    const blocks = await listUnavailableBlocks();
+    res.json({ blocks });
+  } catch (err) {
+    if (err.message === 'CALENDAR_NOT_CONNECTED') {
+      return res.status(503).json({ error: 'Calendar is not connected.' });
+    }
+    console.error('Failed to list unavailable blocks:', err);
+    res.status(500).json({ error: 'Could not load blocked times.' });
+  }
+});
+
+app.delete('/api/admin/blocks/:id', requireAdminAuth, async (req, res) => {
+  try {
+    await deleteUnavailableBlock(req.params.id);
+    res.json({ removed: true });
+  } catch (err) {
+    if (err.message === 'CALENDAR_NOT_CONNECTED') {
+      return res.status(503).json({ error: 'Calendar is not connected.' });
+    }
+    console.error('Failed to remove unavailable block:', req.params.id, err);
+    res.status(500).json({ error: 'Could not remove that block.' });
   }
 });
 

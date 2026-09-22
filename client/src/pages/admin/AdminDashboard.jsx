@@ -9,6 +9,96 @@ function todayISODate() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+// Formats a Date as a local YYYY-MM-DD string (not UTC — toISOString()
+// shifts to UTC first, which can land on the wrong calendar day for
+// anyone west of Greenwich or late in the evening).
+function toLocalISODate(d) {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+// Builds the 6x7 grid of dates for a month view, padded with the trailing
+// days of the previous/next month so every week row is full — a standard
+// month-calendar layout.
+function buildMonthGrid(year, month) {
+  const first = new Date(year, month, 1);
+  // getDay(): 0=Sun..6=Sat: convert to a Monday-first index.
+  const firstWeekday = (first.getDay() + 6) % 7;
+  const gridStart = new Date(year, month, 1 - firstWeekday);
+
+  const days = [];
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
+    days.push(d);
+  }
+  return days;
+}
+
+// A reusable month-view calendar: shows the full month grid, lets the
+// admin (or the walk-in form) click any date, and highlights today and
+// the selected date. Purely a date picker — it doesn't know about times.
+function MonthCalendar({ selectedDate, onSelect, minDate }) {
+  const selected = new Date(`${selectedDate}T00:00:00`);
+  const [viewYear, setViewYear] = useState(selected.getFullYear());
+  const [viewMonth, setViewMonth] = useState(selected.getMonth());
+
+  const today = todayISODate();
+  const min = minDate || null;
+  const days = buildMonthGrid(viewYear, viewMonth);
+  const monthLabel = new Date(viewYear, viewMonth, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+
+  const goPrevMonth = () => {
+    const d = new Date(viewYear, viewMonth - 1, 1);
+    setViewYear(d.getFullYear());
+    setViewMonth(d.getMonth());
+  };
+  const goNextMonth = () => {
+    const d = new Date(viewYear, viewMonth + 1, 1);
+    setViewYear(d.getFullYear());
+    setViewMonth(d.getMonth());
+  };
+
+  return (
+    <div className="month-cal">
+      <div className="month-cal-head">
+        <button type="button" className="month-cal-nav" onClick={goPrevMonth} aria-label="Previous month">
+          <svg width="9" height="14" viewBox="0 0 9 14" fill="none"><path d="M8 1L2 7l6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
+        <p className="month-cal-label">{monthLabel}</p>
+        <button type="button" className="month-cal-nav" onClick={goNextMonth} aria-label="Next month">
+          <svg width="9" height="14" viewBox="0 0 9 14" fill="none"><path d="M1 1l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
+      </div>
+      <div className="month-cal-weekdays">
+        {WEEKDAY_LABELS.map((w) => <span key={w}>{w}</span>)}
+      </div>
+      <div className="month-cal-grid">
+        {days.map((d) => {
+          const iso = toLocalISODate(d);
+          const inMonth = d.getMonth() === viewMonth;
+          const isToday = iso === today;
+          const isSelected = iso === selectedDate;
+          const isPast = min ? iso < min : false;
+          return (
+            <button
+              type="button"
+              key={iso}
+              className={`month-cal-day${inMonth ? '' : ' outside'}${isToday ? ' today' : ''}${isSelected ? ' selected' : ''}`}
+              disabled={isPast}
+              onClick={() => onSelect(iso)}
+            >
+              {d.getDate()}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function formatDateTime(iso, timezone) {
   const d = new Date(iso);
   const date = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: timezone });
@@ -128,6 +218,13 @@ export default function AdminDashboard() {
         >
           Treatments & Pricing
         </button>
+        <button
+          type="button"
+          className={`admin-tab${activeTab === 'availability' ? ' active' : ''}`}
+          onClick={() => setActiveTab('availability')}
+        >
+          Availability
+        </button>
       </div>
 
       {activeTab === 'bookings' && (
@@ -199,6 +296,7 @@ export default function AdminDashboard() {
       )}
 
       {activeTab === 'pricing' && <PricingManager />}
+      {activeTab === 'availability' && <AvailabilityManager />}
     </div>
   );
 }
@@ -259,8 +357,8 @@ function WalkInForm({ onCreated }) {
       <h2 className="admin-walkin-title">New walk-in booking</h2>
 
       <div className="admin-field">
-        <label htmlFor="wi-date">Date</label>
-        <input id="wi-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        <label>Date</label>
+        <MonthCalendar selectedDate={date} onSelect={setDate} minDate={todayISODate()} />
       </div>
 
       {slotsLoading && <p className="admin-loading">Loading available times…</p>}
@@ -318,6 +416,250 @@ function WalkInForm({ onCreated }) {
       <button type="submit" className="btn btn-gold" disabled={submitting || !selectedSlot}>
         {submitting ? 'Booking…' : 'Confirm Walk-in Booking'}
       </button>
+    </form>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Availability tab — a full month calendar (click a date to see that
+// day's live consultation times below it), plus a way to block out whole
+// days or specific time ranges when the clinic is unavailable. A block is
+// just a real event on the connected Google Calendar (see server/calendar.js),
+// so it's picked up by the existing free/busy check immediately — no
+// separate "blocked" concept for the booking logic to know about.
+// ---------------------------------------------------------------------------
+function AvailabilityManager() {
+  const [date, setDate] = useState(todayISODate());
+  const [slots, setSlots] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [slotsError, setSlotsError] = useState(null);
+
+  const [blocks, setBlocks] = useState([]);
+  const [blocksLoading, setBlocksLoading] = useState(true);
+  const [blocksError, setBlocksError] = useState(null);
+
+  const [showBlockForm, setShowBlockForm] = useState(false);
+
+  const loadSlots = useCallback((d) => {
+    setSlotsLoading(true);
+    setSlotsError(null);
+    fetch(`${API_BASE}/api/admin/availability?date=${d}`, { credentials: 'include' })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error) {
+          setSlotsError(data.error);
+          setSlots([]);
+        } else {
+          setSlots(data.slots || []);
+        }
+        setSlotsLoading(false);
+      })
+      .catch(() => {
+        setSlotsError('Could not load availability for this day.');
+        setSlotsLoading(false);
+      });
+  }, []);
+
+  const loadBlocks = useCallback(() => {
+    setBlocksLoading(true);
+    fetch(`${API_BASE}/api/admin/blocks`, { credentials: 'include' })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error) {
+          setBlocksError(data.error);
+        } else {
+          setBlocksError(null);
+          setBlocks(data.blocks || []);
+        }
+        setBlocksLoading(false);
+      })
+      .catch(() => {
+        setBlocksError('Could not load blocked times.');
+        setBlocksLoading(false);
+      });
+  }, []);
+
+  useEffect(() => { loadSlots(date); }, [date, loadSlots]);
+  useEffect(() => { loadBlocks(); }, [loadBlocks]);
+
+  const handleRemoveBlock = async (id) => {
+    if (!confirm('Remove this block? That time will become bookable again.')) return;
+    const res = await fetch(`${API_BASE}/api/admin/blocks/${id}`, { method: 'DELETE', credentials: 'include' });
+    if (res.ok) {
+      setBlocks((prev) => prev.filter((b) => b.id !== id));
+      loadSlots(date);
+    } else {
+      alert('Could not remove that block. Please try again.');
+    }
+  };
+
+  return (
+    <div className="availability-manager">
+      <div className="availability-grid">
+        {/* Left: full calendar + that day's times */}
+        <div>
+          <p className="panel-eyebrow">Calendar</p>
+          <MonthCalendar selectedDate={date} onSelect={setDate} />
+
+          <div className="availability-day-block">
+            <p className="availability-day-title">{formatDateLabel(date)}</p>
+
+            {slotsLoading && <p className="admin-loading">Loading times…</p>}
+            {slotsError && <div className="admin-notice admin-notice-error">{slotsError}</div>}
+            {!slotsLoading && !slotsError && slots.length === 0 && (
+              <p className="admin-empty">No available times this day — fully booked, blocked, or closed.</p>
+            )}
+            {!slotsLoading && !slotsError && slots.length > 0 && (
+              <div className="admin-slot-grid">
+                {slots.map((iso) => (
+                  <span key={iso} className="admin-slot-btn admin-slot-readonly">
+                    {new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' })}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right: blocked-time manager */}
+        <div className="sidebar">
+          <div className="sidebar-block">
+            <div className="admin-toolbar availability-toolbar">
+              <p className="sidebar-block-label" style={{ margin: 0 }}>Blocked time</p>
+              <button className="btn btn-gold btn-sm" onClick={() => setShowBlockForm((v) => !v)}>
+                {showBlockForm ? 'Close' : '+ Block time'}
+              </button>
+            </div>
+
+            {showBlockForm && (
+              <BlockForm
+                defaultDate={date}
+                onCreated={() => {
+                  setShowBlockForm(false);
+                  loadBlocks();
+                  loadSlots(date);
+                }}
+              />
+            )}
+
+            {blocksError && <div className="admin-notice admin-notice-error">{blocksError}</div>}
+            {blocksLoading && !blocksError && <p className="admin-loading">Loading…</p>}
+            {!blocksLoading && !blocksError && blocks.length === 0 && (
+              <p className="admin-empty">Nothing blocked right now.</p>
+            )}
+            {!blocksLoading && blocks.length > 0 && (
+              <ul className="block-list">
+                {blocks.map((b) => (
+                  <li key={b.id} className="block-list-row">
+                    <div>
+                      <p className="block-list-summary">{b.summary}</p>
+                      <p className="block-list-when">
+                        {b.allDay
+                          ? new Date(`${b.start}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · All day'
+                          : formatDateTime(b.start, 'Europe/London') + ' – ' + new Date(b.end).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' })}
+                      </p>
+                    </div>
+                    <button className="admin-cancel-btn" onClick={() => handleRemoveBlock(b.id)}>Remove</button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function formatDateLabel(dateStr) {
+  return new Date(`${dateStr}T00:00:00`).toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+}
+
+function BlockForm({ defaultDate, onCreated }) {
+  const [mode, setMode] = useState('day'); // 'day' | 'range'
+  const [date, setDate] = useState(defaultDate);
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('17:00');
+  const [label, setLabel] = useState('');
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+
+    if (mode === 'range' && startTime >= endTime) {
+      setError('End time must be after start time.');
+      return;
+    }
+
+    setSubmitting(true);
+    const body = mode === 'day'
+      ? { dateStr: date, allDay: true, label }
+      : { startISO: `${date}T${startTime}:00`, endISO: `${date}T${endTime}:00`, label };
+
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/blocks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not block that time.');
+      onCreated();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <form className="pricing-inline-form" onSubmit={handleSubmit}>
+      <div className="block-form-mode">
+        <button type="button" className={`block-form-mode-btn${mode === 'day' ? ' active' : ''}`} onClick={() => setMode('day')}>
+          Whole day
+        </button>
+        <button type="button" className={`block-form-mode-btn${mode === 'range' ? ' active' : ''}`} onClick={() => setMode('range')}>
+          Time range
+        </button>
+      </div>
+
+      <div className="admin-field">
+        <label htmlFor="block-date">Date</label>
+        <input id="block-date" type="date" value={date} min={todayISODate()} onChange={(e) => setDate(e.target.value)} required />
+      </div>
+
+      {mode === 'range' && (
+        <div className="admin-field-row">
+          <div className="admin-field">
+            <label htmlFor="block-start">From</label>
+            <input id="block-start" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} required />
+          </div>
+          <div className="admin-field">
+            <label htmlFor="block-end">To</label>
+            <input id="block-end" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
+          </div>
+        </div>
+      )}
+
+      <div className="admin-field">
+        <label htmlFor="block-label">Reason (optional)</label>
+        <input id="block-label" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Holiday, Lunch, Staff training" />
+      </div>
+
+      {error && <p className="admin-error">{error}</p>}
+
+      <div className="pricing-form-actions">
+        <button type="submit" className="btn btn-gold btn-sm" disabled={submitting}>
+          {submitting ? 'Blocking…' : 'Block this time'}
+        </button>
+      </div>
     </form>
   );
 }

@@ -93,8 +93,6 @@
   gap:16px;
   max-width:1200px;
   margin:0 auto 24px;
-  padding-bottom:20px;
-  border-bottom:2px solid var(--slate-line);
 }
 .admin-title{
   font-family:'Cormorant Garamond', serif;
@@ -244,7 +242,7 @@
   margin:0 auto 20px;
   display:flex;
   gap:8px;
-  border-bottom:1px solid var(--slate-line);
+  border-bottom:1px solid rgba(169,131,71,0.16);
 }
 .admin-tab{
   font-family:'Manrope', sans-serif;
@@ -380,4 +378,204 @@
   display:flex;
   gap:10px;
   margin-top:4px;
+}
+
+/* Shared with the public Booking page's naming, but this stylesheet is
+   scoped to /admin — Booking.css/Pricing.css aren't loaded here, so
+   these need their own definitions rather than relying on those files. */
+.panel-eyebrow{
+  font-size:0.68rem;
+  text-transform:uppercase;
+  letter-spacing:0.3em;
+  color:#A98347;
+}
+.category-count{
+  border-radius:999px;
+  border:1px solid rgba(169,131,71,0.2);
+  background:#FBF9F5;
+  padding:6px 14px;
+  font-size:0.68rem;
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  color:rgba(34,49,74,0.6);
+  white-space:nowrap;
+}
+.sidebar{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.sidebar-block{
+  background:#FFFFFF;
+  border:1px solid rgba(169,131,71,0.16);
+  border-radius:1.2rem;
+  padding:20px;
+}
+.sidebar-block-label{
+  font-size:0.72rem;
+  text-transform:uppercase;
+  letter-spacing:0.16em;
+  color:rgba(34,49,74,0.5);
+}
+
+/* Month calendar — reused by both the walk-in booking date picker and
+   the Availability tab. */
+.month-cal{
+  background:#FFFFFF;
+  border:1px solid rgba(169,131,71,0.16);
+  border-radius:1.2rem;
+  padding:16px;
+}
+.month-cal-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:12px;
+}
+.month-cal-label{
+  font-family:'Cormorant Garamond', serif;
+  font-size:1.15rem;
+  color:#22314A;
+}
+.month-cal-nav{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:30px;
+  width:30px;
+  border-radius:50%;
+  background:#FBF9F5;
+  border:1px solid rgba(169,131,71,0.2);
+  color:#22314A;
+  cursor:pointer;
+}
+.month-cal-nav:hover{background:#F3ECDD;}
+.month-cal-weekdays{
+  display:grid;
+  grid-template-columns:repeat(7, 1fr);
+  gap:4px;
+  margin-bottom:4px;
+}
+.month-cal-weekdays span{
+  text-align:center;
+  font-size:0.66rem;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  color:rgba(34,49,74,0.45);
+}
+.month-cal-grid{
+  display:grid;
+  grid-template-columns:repeat(7, 1fr);
+  gap:4px;
+}
+.month-cal-day{
+  aspect-ratio:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:0.6rem;
+  font-size:0.86rem;
+  color:#22314A;
+  background:transparent;
+  border:none;
+  cursor:pointer;
+}
+.month-cal-day:hover:not(:disabled){background:#F3ECDD;}
+.month-cal-day.outside{color:rgba(34,49,74,0.28);}
+.month-cal-day.today{font-weight:700; color:#A98347;}
+.month-cal-day.selected{background:#22314A; color:#F6EFE2;}
+.month-cal-day:disabled{
+  color:rgba(34,49,74,0.22);
+  cursor:not-allowed;
+}
+
+/* Availability tab */
+.availability-manager{
+  max-width:1200px;
+  margin:0 auto;
+}
+.availability-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:24px;
+  align-items:start;
+}
+@media (min-width: 900px){
+  .availability-grid{grid-template-columns:1.2fr 0.8fr;}
+}
+.availability-day-block{
+  margin-top:20px;
+  background:#FFFFFF;
+  border:1px solid rgba(169,131,71,0.16);
+  border-radius:1.2rem;
+  padding:20px;
+}
+.availability-day-title{
+  font-family:'Cormorant Garamond', serif;
+  font-size:1.15rem;
+  margin:0 0 14px;
+  color:#22314A;
+}
+.availability-toolbar{
+  margin:0 0 16px;
+}
+.admin-slot-readonly{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor:default;
+}
+
+/* Blocked-time list */
+.block-list{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.block-list-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 14px;
+  background:#FBF9F5;
+  border:1px solid rgba(169,131,71,0.14);
+  border-radius:0.8rem;
+}
+.block-list-summary{
+  font-size:0.88rem;
+  font-weight:600;
+  color:#22314A;
+  margin:0 0 2px;
+}
+.block-list-when{
+  font-size:0.78rem;
+  color:rgba(34,49,74,0.55);
+  margin:0;
+}
+
+/* Block-out form mode toggle */
+.block-form-mode{
+  display:flex;
+  gap:8px;
+  margin-bottom:16px;
+}
+.block-form-mode-btn{
+  flex:1;
+  font-size:0.8rem;
+  font-weight:600;
+  color:rgba(34,49,74,0.55);
+  background:#FBF9F5;
+  border:1px solid rgba(169,131,71,0.2);
+  border-radius:0.7rem;
+  padding:9px 8px;
+  cursor:pointer;
+}
+.block-form-mode-btn.active{
+  background:#22314A;
+  color:#F6EFE2;
+  border-color:#22314A;
 }

@@ -251,4 +251,103 @@ export async function cancelBooking(eventId) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Admin "block out unavailable time" — creates a real event on the same
+// Google Calendar the booking system already reads busy/free from, so a
+// block takes effect immediately with no separate logic: getAvailableSlots
+// above already excludes anything busy on the calendar. Blocks are tagged
+// with a private extended property (invisible to attendees/clients, not
+// shown anywhere on the public site) so the admin panel can tell its own
+// blocks apart from real client bookings when listing/deleting them.
+const BLOCK_MARKER = { private: { ladermaBlock: 'true' } };
+
+/**
+ * Creates a block-out event. Pass either `allDay: true` for a whole day
+ * off, or a `startISO`/`endISO` pair for a specific time range within a
+ * day — both are just calendar events, so freebusy treats them exactly
+ * like a real appointment and hides the covered slots automatically.
+ */
+export async function createUnavailableBlock({ dateStr, allDay, startISO, endISO, label }) {
+  const calendar = getCalendarClient();
+  if (!calendar) {
+    throw new Error('CALENDAR_NOT_CONNECTED');
+  }
+
+  const summary = label?.trim() ? label.trim() : 'Unavailable';
+  let event;
+
+  if (allDay) {
+    if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      throw new Error('INVALID_BLOCK_RANGE');
+    }
+    // Google Calendar all-day events use exclusive end dates — end is the
+    // day *after* the last day the block covers.
+    const start = new Date(`${dateStr}T00:00:00`);
+    const end = new Date(start.getTime() + 24 * 60 * 60000);
+    event = {
+      summary,
+      start: { date: dateStr },
+      end: { date: end.toISOString().slice(0, 10) },
+      extendedProperties: BLOCK_MARKER,
+    };
+  } else {
+    if (!startISO || !endISO || isNaN(Date.parse(startISO)) || isNaN(Date.parse(endISO))) {
+      throw new Error('INVALID_BLOCK_RANGE');
+    }
+    if (new Date(endISO) <= new Date(startISO)) {
+      throw new Error('INVALID_BLOCK_RANGE');
+    }
+    event = {
+      summary,
+      start: { dateTime: new Date(startISO).toISOString(), timeZone: TIMEZONE },
+      end: { dateTime: new Date(endISO).toISOString(), timeZone: TIMEZONE },
+      extendedProperties: BLOCK_MARKER,
+    };
+  }
+
+  const res = await calendar.events.insert({
+    calendarId: CALENDAR_ID,
+    requestBody: event,
+    sendUpdates: 'none',
+  });
+
+  return res.data;
+}
+
+/**
+ * Lists upcoming block-out events (not real bookings) so the admin panel
+ * can show what's currently blocked and offer to remove it.
+ */
+export async function listUnavailableBlocks() {
+  const calendar = getCalendarClient();
+  if (!calendar) {
+    throw new Error('CALENDAR_NOT_CONNECTED');
+  }
+
+  const res = await calendar.events.list({
+    calendarId: CALENDAR_ID,
+    timeMin: new Date().toISOString(),
+    maxResults: 250,
+    singleEvents: true,
+    orderBy: 'startTime',
+    privateExtendedProperty: 'ladermaBlock=true',
+  });
+
+  return (res.data.items || []).map((event) => ({
+    id: event.id,
+    summary: event.summary,
+    allDay: Boolean(event.start?.date),
+    start: event.start?.dateTime || event.start?.date,
+    end: event.end?.dateTime || event.end?.date,
+  }));
+}
+
+/**
+ * Removes a block-out event by id. Reuses the same delete call as a real
+ * booking cancellation — Google Calendar events are events either way.
+ */
+export async function deleteUnavailableBlock(eventId) {
+  await cancelBooking(eventId);
+}
+
 export { CONSULTATION_MINUTES, TIMEZONE };
