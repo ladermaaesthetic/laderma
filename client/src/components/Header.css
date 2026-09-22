@@ -103,13 +103,26 @@
 }
 .mainnav-dropdown{
   position:absolute;
-  top:calc(100% + 10px);
+  top:100%;
   left:50%;
   transform:translateX(-50%);
   z-index:1001;
+  /* No visual gap between the trigger and the panel — padding-top on the
+     wrapper (below) creates the visual spacing instead, so the hover
+     region is one continuous area with no dead zone for the mouse to
+     cross. That dead zone was why the menu closed the instant you moved
+     the cursor toward an option. */
+  padding-top:10px;
+}
+.mainnav-dropdown-bridge{
+  position:absolute;
+  top:0; left:0; right:0;
+  height:10px;
+}
+.mainnav-dropdown-panel{
   display:flex;
   align-items:stretch;
-  width:min(860px, 82vw);
+  width:min(760px, 82vw);
   border-radius:1.2rem;
   border:1px solid var(--slate-line);
   background:#FFFDF9;
@@ -118,50 +131,79 @@
   overflow:hidden;
 }
 @keyframes dropdown-in{
-  from{ opacity:0; transform:translateX(-50%) translateY(-6px); }
-  to{ opacity:1; transform:translateX(-50%) translateY(0); }
+  from{ opacity:0; transform:translateY(-6px); }
+  to{ opacity:1; transform:translateY(0); }
 }
-.mainnav-dropdown-columns{
-  display:flex;
-  flex:1;
-  gap:8px;
-  max-height:min(60vh, 460px);
+
+/* Column 1 — category list. Hovering/focusing a row shows its items in
+   column 2, like a classic nested flyout menu. */
+.mainnav-dropdown-categories{
+  flex-shrink:0;
+  width:230px;
+  max-height:min(60vh, 440px);
   overflow-y:auto;
-  padding:22px 8px 22px 22px;
+  padding:14px;
+  border-right:1px solid var(--slate-line);
 }
-.mainnav-dropdown-column{
-  flex:1;
-  min-width:0;
+.mainnav-dropdown-category{
   display:flex;
-  flex-direction:column;
-  gap:22px;
-}
-.mainnav-dropdown-group{
-  display:flex;
-  flex-direction:column;
-}
-.mainnav-dropdown-group-title{
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  width:100%;
   text-align:left;
-  padding:0 10px 10px;
+  border-radius:0.8rem;
+  padding:11px 12px;
   font-family:'Manrope', sans-serif;
-  font-size:0.72rem;
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:0.18em;
-  color:var(--navy-ink);
+  font-size:0.86rem;
+  font-weight:600;
+  color:var(--navy-ink-mid);
+  background:transparent;
+  transition:background .2s ease, color .2s ease;
 }
-.mainnav-dropdown-group-title:hover,
-.mainnav-dropdown-group-title:focus-visible{
+.mainnav-dropdown-category-caret{
+  flex-shrink:0;
+  opacity:0.45;
+}
+.mainnav-dropdown-category:hover,
+.mainnav-dropdown-category:focus-visible,
+.mainnav-dropdown-category.active{
+  background:var(--row-bg);
   color:var(--gold-deep);
 }
+
+/* Column 2 — items for the currently hovered category. */
+.mainnav-dropdown-items{
+  flex:1;
+  min-width:0;
+  max-height:min(60vh, 440px);
+  overflow-y:auto;
+  padding:20px 22px;
+}
+.mainnav-dropdown-items-title{
+  font-family:'Manrope', sans-serif;
+  font-size:0.66rem;
+  text-transform:uppercase;
+  letter-spacing:0.24em;
+  color:var(--gold-deep);
+  margin-bottom:10px;
+}
+.mainnav-dropdown-items-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:2px 12px;
+}
 .mainnav-dropdown-item{
-  display:block;
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
   width:100%;
   text-align:left;
   border-radius:0.7rem;
   padding:8px 10px;
   font-family:'Manrope', sans-serif;
-  font-size:0.85rem;
+  font-size:0.83rem;
   color:var(--navy-ink-mid);
   background:transparent;
   transition:background .2s ease, color .2s ease;
@@ -171,11 +213,32 @@
   background:var(--row-bg);
   color:var(--gold-deep);
 }
+.mainnav-dropdown-item-price{
+  flex-shrink:0;
+  font-size:0.76rem;
+  color:var(--navy-ink-faint);
+}
+.mainnav-dropdown-items-viewall{
+  display:inline-block;
+  margin-top:12px;
+  text-align:left;
+  font-family:'Manrope', sans-serif;
+  font-size:0.76rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.14em;
+  color:var(--gold-deep);
+  background:transparent;
+}
+.mainnav-dropdown-items-viewall:hover,
+.mainnav-dropdown-items-viewall:focus-visible{
+  text-decoration:underline;
+}
 
 .mainnav-dropdown-promo{
   position:relative;
   flex-shrink:0;
-  width:220px;
+  width:180px;
   overflow:hidden;
   border-left:1px solid var(--slate-line);
 }

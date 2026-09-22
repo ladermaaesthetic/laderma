@@ -1,8 +1,13 @@
 .reviews-carousel{
-  position:relative;
   display:flex;
   flex-direction:column;
   gap:40px;
+}
+
+/* Each row is its own independent hover/pause zone — hovering row A
+   pauses only row A's track, row B keeps scrolling, and vice versa. */
+.reviews-row{
+  position:relative;
   overflow:hidden;
   -webkit-mask-image:linear-gradient(to right, transparent, black 6%, black 94%, transparent);
   mask-image:linear-gradient(to right, transparent, black 6%, black 94%, transparent);
@@ -19,13 +24,13 @@
 .reviews-track-reverse{
   animation:reviews-scroll-reverse 52s linear infinite;
 }
-.reviews-carousel.paused .reviews-track{
+.reviews-row.paused .reviews-track{
   animation-play-state:paused;
 }
 /* Also pause on plain CSS hover/focus, so a mouse user gets an instant
    response even before React re-renders the `paused` class. */
-.reviews-carousel:hover .reviews-track,
-.reviews-carousel:focus-within .reviews-track{
+.reviews-row:hover .reviews-track,
+.reviews-row:focus-within .reviews-track{
   animation-play-state:paused;
 }
 

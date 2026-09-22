@@ -65,7 +65,11 @@ function ReviewCard({ review }) {
 }
 
 export default function Reviews() {
-  const [paused, setPaused] = useState(false);
+  // Two independent pause states — one per row — so hovering row A stops
+  // only row A while row B keeps scrolling, and vice versa.
+  const [pausedA, setPausedA] = useState(false);
+  const [pausedB, setPausedB] = useState(false);
+
   // Duplicate each row so its CSS marquee can scroll seamlessly from the
   // end straight back into the start with no visible jump/reset. The two
   // rows use the same review set (reordered) but animate in opposite
@@ -84,24 +88,33 @@ export default function Reviews() {
       />
 
       <section style={{ paddingTop: 0 }}>
-        <div
-          className={`reviews-carousel${paused ? ' paused' : ''}`}
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-          onTouchStart={() => setPaused((v) => !v)}
-        >
-          <div className="reviews-track reviews-track-forward">
-            {rowA.map((review, i) => (
-              <ReviewCard review={review} key={`a-${review.name}-${i}`} />
-            ))}
+        <div className="reviews-carousel">
+          <div
+            className={`reviews-row${pausedA ? ' paused' : ''}`}
+            onMouseEnter={() => setPausedA(true)}
+            onMouseLeave={() => setPausedA(false)}
+            onTouchStart={() => setPausedA((v) => !v)}
+          >
+            <div className="reviews-track reviews-track-forward">
+              {rowA.map((review, i) => (
+                <ReviewCard review={review} key={`a-${review.name}-${i}`} />
+              ))}
+            </div>
           </div>
-          <div className="reviews-track reviews-track-reverse">
-            {rowB.map((review, i) => (
-              <ReviewCard review={review} key={`b-${review.name}-${i}`} />
-            ))}
+          <div
+            className={`reviews-row${pausedB ? ' paused' : ''}`}
+            onMouseEnter={() => setPausedB(true)}
+            onMouseLeave={() => setPausedB(false)}
+            onTouchStart={() => setPausedB((v) => !v)}
+          >
+            <div className="reviews-track reviews-track-reverse">
+              {rowB.map((review, i) => (
+                <ReviewCard review={review} key={`b-${review.name}-${i}`} />
+              ))}
+            </div>
           </div>
         </div>
-        <p className="reviews-hint">Hover to pause and read — tap to pause on mobile.</p>
+        <p className="reviews-hint">Hover a row to pause and read it — the other keeps scrolling.</p>
       </section>
 
       <section className="reviews-cta-band">

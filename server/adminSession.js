@@ -41,14 +41,24 @@ export function sessionMiddleware() {
     );
   }
 
+  // The client (Netlify) and this server (Render) are different origins,
+  // so the session cookie is cross-site from the browser's point of view.
+  // Cross-site cookies require SameSite=None, which in turn requires
+  // Secure — browsers refuse to set/send a SameSite=None cookie over
+  // plain HTTP. In local dev (NODE_ENV !== 'production'), fall back to
+  // 'lax'/non-secure since localhost isn't served over HTTPS. Getting
+  // this wrong is why logins looked like they "didn't stick": the cookie
+  // was set but never sent back on the next cross-origin request, so
+  // every refresh (a fresh, cookie-less request cycle) looked logged out.
+  const isProd = process.env.NODE_ENV === 'production';
   return session({
     secret,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
       maxAge: 12 * 60 * 60 * 1000, // 12 hours
     },
   });

@@ -47,6 +47,16 @@ import {
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Render (and most hosts) put the app behind a reverse proxy, so Express
+// sees a plain HTTP connection from the proxy even though the real
+// visitor connected over HTTPS. Without this, req.secure is always
+// false and express-session silently refuses to set cookies marked
+// `secure: true` — which is exactly why logins didn't stick in
+// production. `1` trusts the first hop (Render's own proxy).
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // CLIENT_ORIGIN can be a single URL or a comma-separated list, e.g.
 // "https://ladermaclinic.netlify.app,https://test-branch--ladermaclinic.netlify.app"
 // — this lets a Netlify branch deploy (its own origin) talk to the same

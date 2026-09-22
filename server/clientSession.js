@@ -44,6 +44,13 @@ export function clientSessionMiddleware() {
     );
   }
 
+  // Same cross-origin cookie reasoning as adminSession.js: the client
+  // (Netlify) and this server (Render) are different origins, so the
+  // cookie needs SameSite=None + Secure in production, or it never makes
+  // it back on the next fetch — which is exactly why clients looked
+  // logged out on refresh and "Could not load your bookings" showed up
+  // even for a client who'd just logged in and booked successfully.
+  const isProd = process.env.NODE_ENV === 'production';
   return session({
     name: 'laderma.client.sid',
     secret,
@@ -51,8 +58,8 @@ export function clientSessionMiddleware() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days — clients expect to stay signed in
     },
   });

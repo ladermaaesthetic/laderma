@@ -15,18 +15,10 @@ function AccountIcon() {
   );
 }
 
-// Split the flat category list into evenly-sized columns for the desktop
-// mega-menu, the way Therapie lays "Cosmetic Injections / Fillers / Skin
-// Boosters" out as side-by-side columns rather than one long list.
-function splitIntoColumns(list, columnCount) {
-  const columns = Array.from({ length: columnCount }, () => []);
-  list.forEach((item, i) => columns[i % columnCount].push(item));
-  return columns.filter((col) => col.length > 0);
-}
-
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [mobileTreatmentsOpen, setMobileTreatmentsOpen] = useState(false);
   const [mobileActiveCategoryId, setMobileActiveCategoryId] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -57,11 +49,22 @@ export default function Header() {
     const onClick = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
+        setActiveCategoryId(null);
       }
     };
     document.addEventListener('mousedown', onClick);
     return () => document.removeEventListener('mousedown', onClick);
   }, [dropdownOpen]);
+
+  // Default to the first category being "open" (its items showing in the
+  // flyout) as soon as the dropdown appears, so the menu doesn't open on
+  // an empty second panel — matches how the reference site's menu always
+  // shows a populated flyout right away.
+  useEffect(() => {
+    if (dropdownOpen && categories.length > 0 && !activeCategoryId) {
+      setActiveCategoryId(categories[0].id);
+    }
+  }, [dropdownOpen, categories, activeCategoryId]);
 
   // Close the menu automatically on route change (NavLink click).
   const closeMenu = () => {
@@ -73,12 +76,13 @@ export default function Header() {
   // Each treatment category has its own dedicated page, e.g. /pricing/diode-laser.
   const goToCategory = (categoryId) => {
     setDropdownOpen(false);
+    setActiveCategoryId(null);
     closeMenu();
     navigate(`/pricing/${categoryId}`);
   };
 
-  const categoryColumns = splitIntoColumns(categories, 3);
   const mobileActiveCategory = categories.find((cat) => cat.id === mobileActiveCategoryId) || null;
+  const activeCategory = categories.find((cat) => cat.id === activeCategoryId) || null;
 
   return (
     <>
@@ -102,7 +106,7 @@ export default function Header() {
                   key={link.href}
                   ref={dropdownRef}
                   onMouseEnter={() => setDropdownOpen(true)}
-                  onMouseLeave={() => setDropdownOpen(false)}
+                  onMouseLeave={() => { setDropdownOpen(false); setActiveCategoryId(null); }}
                 >
                   <NavLink
                     to={link.href}
@@ -126,41 +130,60 @@ export default function Header() {
 
                   {dropdownOpen && categories.length > 0 && (
                     <div className="mainnav-dropdown">
-                      <div className="mainnav-dropdown-columns">
-                        {categoryColumns.map((column, colIndex) => (
-                          <div className="mainnav-dropdown-column" key={colIndex}>
-                            {column.map((cat) => (
-                              <div key={cat.id} className="mainnav-dropdown-group">
-                                <button
-                                  type="button"
-                                  className="mainnav-dropdown-group-title"
-                                  onClick={() => goToCategory(cat.id)}
-                                >
-                                  {cat.title}
-                                </button>
-                                {cat.items?.slice(0, 6).map((item) => (
-                                  <button
-                                    key={item.id}
-                                    type="button"
-                                    className="mainnav-dropdown-item"
-                                    onClick={() => goToCategory(cat.id)}
-                                  >
-                                    {item.name}
-                                  </button>
-                                ))}
-                              </div>
-                            ))}
-                          </div>
-                        ))}
-                      </div>
+                      <div className="mainnav-dropdown-bridge" />
+                      <div className="mainnav-dropdown-panel">
+                        <div className="mainnav-dropdown-categories">
+                          {categories.map((cat) => (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              className={`mainnav-dropdown-category${activeCategoryId === cat.id ? ' active' : ''}`}
+                              onMouseEnter={() => setActiveCategoryId(cat.id)}
+                              onFocus={() => setActiveCategoryId(cat.id)}
+                              onClick={() => goToCategory(cat.id)}
+                            >
+                              {cat.title}
+                              <svg className="mainnav-dropdown-category-caret" width="7" height="12" viewBox="0 0 7 12" fill="none">
+                                <path d="M1 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </button>
+                          ))}
+                        </div>
 
-                      <div className="mainnav-dropdown-promo">
-                        <img src={IMAGES.treatmentRoom} alt="" />
-                        <div className="mainnav-dropdown-promo-copy">
-                          <p className="mainnav-dropdown-promo-title">Not sure where to start?</p>
-                          <NavLink to="/booking" className="btn btn-gold" onClick={() => setDropdownOpen(false)}>
-                            Book a Free Consultation
-                          </NavLink>
+                        {activeCategory && (
+                          <div className="mainnav-dropdown-items">
+                            <p className="mainnav-dropdown-items-title">{activeCategory.title}</p>
+                            <div className="mainnav-dropdown-items-grid">
+                              {activeCategory.items?.map((item) => (
+                                <button
+                                  key={item.id}
+                                  type="button"
+                                  className="mainnav-dropdown-item"
+                                  onClick={() => goToCategory(activeCategory.id)}
+                                >
+                                  <span>{item.name}</span>
+                                  <span className="mainnav-dropdown-item-price">{item.price}</span>
+                                </button>
+                              ))}
+                            </div>
+                            <button
+                              type="button"
+                              className="mainnav-dropdown-items-viewall"
+                              onClick={() => goToCategory(activeCategory.id)}
+                            >
+                              View all {activeCategory.title}
+                            </button>
+                          </div>
+                        )}
+
+                        <div className="mainnav-dropdown-promo">
+                          <img src={IMAGES.treatmentRoom} alt="" />
+                          <div className="mainnav-dropdown-promo-copy">
+                            <p className="mainnav-dropdown-promo-title">Not sure where to start?</p>
+                            <NavLink to="/booking" className="btn btn-gold" onClick={() => setDropdownOpen(false)}>
+                              Book a Free Consultation
+                            </NavLink>
+                          </div>
                         </div>
                       </div>
                     </div>

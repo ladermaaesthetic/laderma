@@ -84,9 +84,15 @@ body{
   background:var(--cream-bg);
   color:var(--navy-ink);
   font-family:'Manrope', sans-serif;
-  font-size:16px;
+  font-size:17px;
   line-height:1.6;
   -webkit-font-smoothing:antialiased;
+}
+/* Bump the base size further on phones/tablets specifically — text and
+   spacing that's fine at desktop width reads as cramped on a smaller
+   screen held closer to the face. */
+@media (max-width: 899px){
+  body{font-size:18px;}
 }
 h1,h2,h3{
   font-family:'Cormorant Garamond', serif;
@@ -112,14 +118,14 @@ textarea:focus-visible{
 .container{
   max-width:1180px;
   margin:0 auto;
-  padding:0 20px;
+  padding:0 24px;
 }
 
 @media (min-width: 480px){
-  .container{padding:0 28px;}
+  .container{padding:0 32px;}
 }
 @media (min-width: 768px){
-  .container{padding:0 40px;}
+  .container{padding:0 48px;}
 }
 @media (min-width: 1024px){
   .container{padding:0 24px;}
