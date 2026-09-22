@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { NAV_LINKS, LOGO_URL, IMAGES } from '../data/siteData';
+import { NAV_LINKS, LOGO_URL } from '../data/siteData';
 import { useAuth } from '../context/AuthContext';
 import './Header.css';
 
@@ -223,13 +223,10 @@ export default function Header() {
                         )}
 
                         <div className="mainnav-dropdown-promo">
-                          <img src={IMAGES.treatmentRoom} alt="" />
-                          <div className="mainnav-dropdown-promo-copy">
-                            <p className="mainnav-dropdown-promo-title">Not sure where to start?</p>
-                            <NavLink to="/booking" className="btn btn-gold" onClick={() => setDropdownOpen(false)}>
-                              Book a Free Consultation
-                            </NavLink>
-                          </div>
+                          <p className="mainnav-dropdown-promo-title">Not sure where to start?</p>
+                          <NavLink to="/booking" className="btn btn-gold" onClick={() => setDropdownOpen(false)}>
+                            Book a Free Consultation
+                          </NavLink>
                         </div>
                       </div>
                     </div>
