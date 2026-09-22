@@ -5,6 +5,16 @@
   background:var(--slate);
   backdrop-filter: blur(24px);
 }
+/* Every plain nav/menu button in the header shares this reset — buttons
+   have a default border/background in some browsers that <a> tags don't,
+   which is what caused the boxed-looking highlight around menu rows. */
+.site-header button,
+.mobile-nav button{
+  border:none;
+  background:none;
+  cursor:pointer;
+  margin:0;
+}
 .header-inner{
   display:flex;
   align-items:center;

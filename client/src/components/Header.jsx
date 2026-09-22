@@ -70,13 +70,11 @@ export default function Header() {
     setMobileActiveCategoryId(null);
   };
 
-  // Jump straight to a category anchor on the Treatments & Pricing page,
-  // whether we're already on that page (just scroll) or navigating there
-  // from elsewhere (navigate, then let the browser's hash scroll handle it).
+  // Each treatment category has its own dedicated page, e.g. /pricing/diode-laser.
   const goToCategory = (categoryId) => {
     setDropdownOpen(false);
     closeMenu();
-    navigate(`/pricing#${categoryId}`);
+    navigate(`/pricing/${categoryId}`);
   };
 
   const categoryColumns = splitIntoColumns(categories, 3);
