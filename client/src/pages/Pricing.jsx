@@ -154,6 +154,7 @@ export default function Pricing() {
           {/* Sticky category jump nav */}
           <div className="jumpnav-wrap" style={{ top: headerHeight }}>
             <div className="jumpnav-scroll">
+              {overflowing && !atStart && <div className="jumpnav-fade jumpnav-fade-left" />}
               {overflowing && !atStart && (
                 <button
                   type="button"
@@ -166,7 +167,7 @@ export default function Pricing() {
                   </svg>
                 </button>
               )}
-              {overflowing && !atEnd && <div className="jumpnav-fade" />}
+              {overflowing && !atEnd && <div className="jumpnav-fade jumpnav-fade-right" />}
               <nav className="jumpnav" ref={scrollerRef} aria-label="Jump to treatment category">
                 {categories.map((cat) => (
                   <a

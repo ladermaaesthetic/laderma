@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import FloatingCTA from './FloatingCTA';
+import CookieConsent from './CookieConsent';
 import './Layout.css';
 
 export default function Layout({ children }) {
@@ -23,6 +24,7 @@ export default function Layout({ children }) {
       <main className="page-fade" key={pathname}>{children}</main>
       <FloatingCTA />
       <Footer />
+      <CookieConsent />
     </>
   );
 }

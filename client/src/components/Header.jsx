@@ -6,6 +6,45 @@ import './Header.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
+// Display-only grouping for the desktop "Treatments & Pricing" dropdown.
+// The real categories in the database are organised by treatment TYPE
+// (laser, injectables, fillers, wellness...), so a handful of them are
+// closely related and read better clustered under one heading in the
+// menu — this never touches the underlying category ids/titles/data,
+// it only changes how the left-hand list is grouped and labelled here.
+// Any category id not listed below (e.g. a new one added later in the
+// admin panel) automatically falls back to its own single-item group,
+// so the menu never silently hides anything.
+const MENU_GROUPS = [
+  { label: 'Free Consultations', categoryIds: ['free-consultations'] },
+  { label: 'Injectables & Fillers', categoryIds: ['anti-wrinkle', 'fillers', 'skin-boosters'] },
+  { label: 'Laser & Skin Treatments', categoryIds: ['diode-laser', 'microneedling'] },
+  { label: 'Body Treatments', categoryIds: ['body-treatments'] },
+  { label: 'Wellness & Specialist', categoryIds: ['wellness'] },
+];
+
+// Builds the grouped list actually shown in the dropdown from whatever
+// categories are live right now, so it stays correct even if admin adds,
+// renames, or removes a category — anything unrecognised just becomes
+// its own group under its own title.
+function buildMenuGroups(categories) {
+  const byId = new Map(categories.map((cat) => [cat.id, cat]));
+  const used = new Set();
+  const groups = [];
+
+  for (const group of MENU_GROUPS) {
+    const members = group.categoryIds.map((id) => byId.get(id)).filter(Boolean);
+    members.forEach((cat) => used.add(cat.id));
+    if (members.length > 0) groups.push({ label: group.label, categories: members });
+  }
+
+  for (const cat of categories) {
+    if (!used.has(cat.id)) groups.push({ label: cat.title, categories: [cat] });
+  }
+
+  return groups;
+}
+
 function AccountIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -83,6 +122,7 @@ export default function Header() {
 
   const mobileActiveCategory = categories.find((cat) => cat.id === mobileActiveCategoryId) || null;
   const activeCategory = categories.find((cat) => cat.id === activeCategoryId) || null;
+  const menuGroups = buildMenuGroups(categories);
 
   return (
     <>
@@ -133,20 +173,27 @@ export default function Header() {
                       <div className="mainnav-dropdown-bridge" />
                       <div className="mainnav-dropdown-panel">
                         <div className="mainnav-dropdown-categories">
-                          {categories.map((cat) => (
-                            <button
-                              key={cat.id}
-                              type="button"
-                              className={`mainnav-dropdown-category${activeCategoryId === cat.id ? ' active' : ''}`}
-                              onMouseEnter={() => setActiveCategoryId(cat.id)}
-                              onFocus={() => setActiveCategoryId(cat.id)}
-                              onClick={() => goToCategory(cat.id)}
-                            >
-                              {cat.title}
-                              <svg className="mainnav-dropdown-category-caret" width="7" height="12" viewBox="0 0 7 12" fill="none">
-                                <path d="M1 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            </button>
+                          {menuGroups.map((group) => (
+                            <div className="mainnav-dropdown-group" key={group.label}>
+                              {group.categories.length > 1 && (
+                                <p className="mainnav-dropdown-group-label">{group.label}</p>
+                              )}
+                              {group.categories.map((cat) => (
+                                <button
+                                  key={cat.id}
+                                  type="button"
+                                  className={`mainnav-dropdown-category${activeCategoryId === cat.id ? ' active' : ''}`}
+                                  onMouseEnter={() => setActiveCategoryId(cat.id)}
+                                  onFocus={() => setActiveCategoryId(cat.id)}
+                                  onClick={() => goToCategory(cat.id)}
+                                >
+                                  {group.categories.length > 1 ? cat.title.replace(/ Treatments$/, '') : cat.title}
+                                  <svg className="mainnav-dropdown-category-caret" width="7" height="12" viewBox="0 0 7 12" fill="none">
+                                    <path d="M1 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                </button>
+                              ))}
+                            </div>
                           ))}
                         </div>
 
@@ -161,8 +208,7 @@ export default function Header() {
                                   className="mainnav-dropdown-item"
                                   onClick={() => goToCategory(activeCategory.id)}
                                 >
-                                  <span>{item.name}</span>
-                                  <span className="mainnav-dropdown-item-price">{item.price}</span>
+                                  {item.name}
                                 </button>
                               ))}
                             </div>

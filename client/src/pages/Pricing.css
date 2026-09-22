@@ -21,11 +21,18 @@
 }
 .jumpnav-fade{
   position:absolute;
-  top:0; right:0; bottom:0;
+  top:0; bottom:0;
   width:56px;
-  background:linear-gradient(to right, transparent, rgba(68,89,125,0.98) 78%);
   pointer-events:none;
   z-index:2;
+}
+.jumpnav-fade-right{
+  right:0;
+  background:linear-gradient(to right, transparent, rgba(68,89,125,0.98) 78%);
+}
+.jumpnav-fade-left{
+  left:0;
+  background:linear-gradient(to left, transparent, rgba(68,89,125,0.98) 78%);
 }
 .jumpnav-arrow{
   display:none;

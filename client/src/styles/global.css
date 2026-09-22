@@ -78,21 +78,29 @@
 }
 
 *{box-sizing:border-box;}
-html{scroll-behavior:smooth;}
+/* The root font-size is what every `rem` unit across the site scales
+   from (hero headline, section titles, stat numbers, spacing — most of
+   the site is sized in rem, not px). Raising only `body`'s font-size
+   earlier did nothing for any of that, since rem always tracks `html`,
+   never `body`. Test-branch reads roughly a notch larger everywhere at
+   once — nav, headline, copy, cards, gaps together — which is a root
+   size difference, not a handful of one-off component tweaks, so it's
+   fixed here instead. */
+html{
+  scroll-behavior:smooth;
+  font-size:17.5px;
+}
+@media (max-width: 899px){
+  html{font-size:18.5px;}
+}
 body{
   margin:0;
   background:var(--cream-bg);
   color:var(--navy-ink);
   font-family:'Manrope', sans-serif;
-  font-size:17px;
+  font-size:1rem;
   line-height:1.6;
   -webkit-font-smoothing:antialiased;
-}
-/* Bump the base size further on phones/tablets specifically — text and
-   spacing that's fine at desktop width reads as cramped on a smaller
-   screen held closer to the face. */
-@media (max-width: 899px){
-  body{font-size:18px;}
 }
 h1,h2,h3{
   font-family:'Cormorant Garamond', serif;

@@ -145,6 +145,20 @@
   padding:14px;
   border-right:1px solid var(--slate-line);
 }
+.mainnav-dropdown-group + .mainnav-dropdown-group{
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid var(--slate-line);
+}
+.mainnav-dropdown-group-label{
+  padding:6px 12px 4px;
+  font-family:'Manrope', sans-serif;
+  font-size:0.66rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.14em;
+  color:var(--navy-ink-faint);
+}
 .mainnav-dropdown-category{
   display:flex;
   align-items:center;
@@ -194,10 +208,7 @@
   gap:2px 12px;
 }
 .mainnav-dropdown-item{
-  display:flex;
-  align-items:baseline;
-  justify-content:space-between;
-  gap:10px;
+  display:block;
   width:100%;
   text-align:left;
   border-radius:0.7rem;
@@ -212,11 +223,6 @@
 .mainnav-dropdown-item:focus-visible{
   background:var(--row-bg);
   color:var(--gold-deep);
-}
-.mainnav-dropdown-item-price{
-  flex-shrink:0;
-  font-size:0.76rem;
-  color:var(--navy-ink-faint);
 }
 .mainnav-dropdown-items-viewall{
   display:inline-block;
