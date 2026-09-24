@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import IntroHero from '../../components/IntroHero';
 import { useAuth } from '../../context/AuthContext';
@@ -6,7 +6,7 @@ import '../Booking.css';
 import './Auth.css';
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, idleSignedOut, acknowledgeIdleSignOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = location.state?.from || '/account';
@@ -14,6 +14,18 @@ export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Shows once, right after an idle sign-out lands someone here — a plain
+  // "you got logged out" with no explanation reads like a bug, not a
+  // security feature. acknowledgeIdleSignOut clears the underlying flag so
+  // it doesn't reappear on a later, unrelated visit to this page.
+  const [showIdleNotice, setShowIdleNotice] = useState(false);
+  useEffect(() => {
+    if (idleSignedOut) {
+      setShowIdleNotice(true);
+      acknowledgeIdleSignOut();
+    }
+  }, [idleSignedOut, acknowledgeIdleSignOut]);
 
   const handleChange = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
@@ -43,6 +55,13 @@ export default function Login() {
       <section style={{ paddingTop: 0 }}>
         <div className="container auth-wrap">
           <div className="auth-card">
+            {showIdleNotice && (
+              <div className="notice notice-pending" style={{ marginBottom: 24 }}>
+                <strong>You were signed out.</strong>
+                <p>Your session timed out after a while of inactivity, to keep your account secure. Please sign in again.</p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit}>
               <div className="field">
                 <label htmlFor="email">Email address</label>
@@ -57,7 +76,12 @@ export default function Login() {
               </div>
 
               <div className="field">
-                <label htmlFor="password">Password</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <label htmlFor="password">Password</label>
+                  <NavLink to="/account/forgot-password" style={{ fontSize: '0.82rem', color: 'var(--gold-deep)' }}>
+                    Forgot password?
+                  </NavLink>
+                </div>
                 <input
                   type="password"
                   id="password"

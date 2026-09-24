@@ -4,10 +4,13 @@ import Header from './Header';
 import Footer from './Footer';
 import FloatingCTA from './FloatingCTA';
 import CookieConsent from './CookieConsent';
+import SessionTimeoutWarning from './SessionTimeoutWarning';
+import { useAuth } from '../context/AuthContext';
 import './Layout.css';
 
 export default function Layout({ children }) {
   const { pathname } = useLocation();
+  const { idleWarningSecondsLeft, stayActive, logout } = useAuth();
 
   // React Router does client-side navigation, which never resets scroll
   // position on its own (unlike a normal full page load) — so without
@@ -25,6 +28,13 @@ export default function Layout({ children }) {
       <FloatingCTA />
       <Footer />
       <CookieConsent />
+      <SessionTimeoutWarning
+        show={idleWarningSecondsLeft != null}
+        secondsLeft={idleWarningSecondsLeft}
+        onStay={stayActive}
+        onSignOut={logout}
+        label="account session"
+      />
     </>
   );
 }

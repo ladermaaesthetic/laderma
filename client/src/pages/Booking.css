@@ -21,6 +21,11 @@
   color:var(--navy-ink-mid);
   max-width:34rem;
 }
+.panel-desc a{
+  color:var(--gold-deep);
+  text-decoration:underline;
+  text-underline-offset:2px;
+}
 
 .date-picker{
   margin-top:28px;
@@ -37,7 +42,11 @@
 }
 .date-picker input{
   font-family:'Manrope', sans-serif;
-  font-size:0.95rem;
+  /* 16px minimum — iOS Safari auto-zooms the whole page when a focused
+     input's font-size is under 16px. The min-width override below
+     restores the original slightly-smaller size once that's no longer a
+     concern (desktop/tablet browsers don't have this zoom behavior). */
+  font-size:1rem;
   color:var(--navy-ink);
   background:var(--surface-2);
   border:1px solid var(--line);
@@ -113,7 +122,8 @@ form{margin-top:36px;}
 .field textarea{
   width:100%;
   font-family:'Manrope', sans-serif;
-  font-size:0.95rem;
+  /* 16px minimum — same iOS auto-zoom reasoning as .date-picker input above. */
+  font-size:1rem;
   color:var(--navy-ink);
   background:var(--surface-2);
   border:1px solid var(--line);
@@ -209,6 +219,10 @@ form{margin-top:36px;}
 
 @media (min-width: 640px){
   .field-row{grid-template-columns:1fr 1fr;}
+  .field input,
+  .field select,
+  .field textarea,
+  .date-picker input{font-size:0.95rem;}
 }
 @media (min-width: 900px){
   .content-grid{grid-template-columns:1.3fr 1fr; align-items:start;}

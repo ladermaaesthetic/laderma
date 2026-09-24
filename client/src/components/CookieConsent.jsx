@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import './CookieConsent.css';
 
 const STORAGE_KEY = 'laderma.cookie-consent';
@@ -80,7 +81,10 @@ export default function CookieConsent() {
         aria-label="Cookie consent"
       >
         <p className="cookie-consent-text">
-          We use cookies to keep you signed in and to remember your booking details.
+          We only use cookies that are strictly necessary to keep you signed in — no analytics or advertising
+          cookies. See our{' '}
+          <NavLink to="/privacy-policy#cookies" target="_blank" rel="noreferrer">Privacy Policy</NavLink> for
+          details.
         </p>
         <div className="cookie-consent-actions">
           <button type="button" className="btn btn-outline cookie-consent-decline" onClick={() => respond('declined')}>

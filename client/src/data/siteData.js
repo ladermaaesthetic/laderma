@@ -33,12 +33,17 @@ export const TREATMENT_OPTIONS = [
 ];
 
 export const CLINIC_ADDRESS = {
-  line1: '21 Jackson St',
+  line1: '19 Jackson St',
   city: 'Gateshead',
   postcode: 'NE8 1EE',
-  full: '21 Jackson St, Gateshead NE8 1EE',
-  googleMapsUrl: 'https://maps.app.goo.gl/NBbLYePre8H9CyvD9',
-  googleMapsEmbedSrc: 'https://www.google.com/maps?q=21+Jackson+St%2C+Gateshead+NE8+1EE&output=embed',
+  full: '19 Jackson St, Gateshead NE8 1EE',
+  // A reconstructable Google Maps search URL rather than a maps.app.goo.gl
+  // short link — a short link is an opaque saved-place ID that can't be
+  // safely hand-edited when the address changes (no way to confirm what
+  // it actually points to), so this is the correct address every time by
+  // construction rather than by guesswork.
+  googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=19+Jackson+St%2C+Gateshead+NE8+1EE',
+  googleMapsEmbedSrc: 'https://www.google.com/maps?q=19+Jackson+St%2C+Gateshead+NE8+1EE&output=embed',
 };
 
 export const CLINIC_PHONE = '07745 756448';
@@ -57,6 +62,8 @@ export const FOOTER_COMPANY_LINKS = [
   { href: '/reviews', label: 'Reviews' },
   { href: '/location', label: 'Location' },
   { href: '/gallery', label: 'Gallery' },
+  { href: '/privacy-policy', label: 'Privacy Policy' },
+  { href: '/terms-of-service', label: 'Terms of Service' },
 ];
 
 export const FOOTER_EXPLORE_LINKS = [

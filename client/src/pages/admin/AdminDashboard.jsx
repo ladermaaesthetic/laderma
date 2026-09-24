@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SessionTimeoutWarning from '../../components/SessionTimeoutWarning';
+import { useIdleTimeout } from '../../hooks/useIdleTimeout';
+import { IDLE_TIMEOUT_MS, IDLE_WARNING_MS } from '../../config/sessionTimeout';
 import './admin.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
@@ -118,6 +121,7 @@ export default function AdminDashboard() {
   const [lastUpdated, setLastUpdated] = useState(null);
 
   const [showWalkInForm, setShowWalkInForm] = useState(false);
+  const [reschedulingBooking, setReschedulingBooking] = useState(null);
 
   // --- Auth check on mount ---
   useEffect(() => {
@@ -168,10 +172,27 @@ export default function AdminDashboard() {
     return () => clearInterval(interval);
   }, [checkingAuth, loadBookings]);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async (timedOut) => {
     await fetch(`${API_BASE}/api/admin/logout`, { method: 'POST', credentials: 'include' });
-    navigate('/admin');
-  };
+    navigate('/admin', timedOut ? { state: { timedOut: true } } : undefined);
+  }, [navigate]);
+
+  // Idle sign-out: staff computers at the front desk sit unattended between
+  // clients, and the bookings table shows every client's full name, email
+  // and phone — so an idle admin session auto-signs-out (with a warning
+  // first) the same way client accounts do. See hooks/useIdleTimeout.js and
+  // config/sessionTimeout.js for the shared behaviour/durations.
+  const heartbeat = useCallback(() => {
+    fetch(`${API_BASE}/api/admin/session`, { credentials: 'include' }).catch(() => {});
+  }, []);
+
+  const { secondsLeft: idleWarningSecondsLeft, stayActive } = useIdleTimeout({
+    enabled: !checkingAuth,
+    idleMs: IDLE_TIMEOUT_MS,
+    warningMs: IDLE_WARNING_MS,
+    onTimeout: () => handleLogout(true),
+    onHeartbeat: heartbeat,
+  });
 
   const handleCancel = async (id) => {
     if (!confirm('Cancel this booking? This cannot be undone.')) return;
@@ -192,6 +213,13 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-shell">
+      <SessionTimeoutWarning
+        show={idleWarningSecondsLeft != null}
+        secondsLeft={idleWarningSecondsLeft}
+        onStay={stayActive}
+        onSignOut={() => handleLogout(false)}
+        label="admin session"
+      />
       <header className="admin-header">
         <div>
           <p className="admin-eyebrow">La Derma</p>
@@ -199,7 +227,7 @@ export default function AdminDashboard() {
         </div>
         <div className="admin-header-actions">
           <span className="admin-username">{username}</span>
-          <button className="btn btn-outline" onClick={handleLogout}>Log Out</button>
+          <button className="btn btn-outline" onClick={() => handleLogout(false)}>Log Out</button>
         </div>
       </header>
 
@@ -230,7 +258,13 @@ export default function AdminDashboard() {
       {activeTab === 'bookings' && (
         <>
           <div className="admin-toolbar">
-            <button className="btn btn-gold" onClick={() => setShowWalkInForm((v) => !v)}>
+            <button
+              className="btn btn-gold"
+              onClick={() => {
+                setReschedulingBooking(null);
+                setShowWalkInForm((v) => !v);
+              }}
+            >
               {showWalkInForm ? 'Close' : '+ New Walk-in Booking'}
             </button>
             <span className="admin-updated">
@@ -244,6 +278,17 @@ export default function AdminDashboard() {
                 setShowWalkInForm(false);
                 loadBookings();
               }}
+            />
+          )}
+
+          {reschedulingBooking && (
+            <RescheduleForm
+              booking={reschedulingBooking}
+              onDone={() => {
+                setReschedulingBooking(null);
+                loadBookings();
+              }}
+              onCancel={() => setReschedulingBooking(null)}
             />
           )}
 
@@ -284,7 +329,18 @@ export default function AdminDashboard() {
                       <td>{b.treatment || '—'}</td>
                       <td className="admin-notes-cell">{b.notes || '—'}</td>
                       <td>
-                        <button className="admin-cancel-btn" onClick={() => handleCancel(b.id)}>Cancel</button>
+                        <div className="admin-row-actions">
+                          <button
+                            className="admin-reschedule-btn"
+                            onClick={() => {
+                              setShowWalkInForm(false);
+                              setReschedulingBooking(b);
+                            }}
+                          >
+                            Reschedule
+                          </button>
+                          <button className="admin-cancel-btn" onClick={() => handleCancel(b.id)}>Cancel</button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -416,6 +472,105 @@ function WalkInForm({ onCreated }) {
       <button type="submit" className="btn btn-gold" disabled={submitting || !selectedSlot}>
         {submitting ? 'Booking…' : 'Confirm Walk-in Booking'}
       </button>
+    </form>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Reschedule — moves an existing booking to a new date/time in place (same
+// underlying Calendar event, see server/calendar.js's rescheduleBooking),
+// and sends the client a branded "your consultation has been rescheduled"
+// email instead of a cancel + a fresh confirmation. Reuses the same
+// calendar + slot-grid pattern as the walk-in form above, just scoped to
+// one existing booking rather than creating a new one.
+// ---------------------------------------------------------------------------
+function RescheduleForm({ booking, onDone, onCancel }) {
+  const [date, setDate] = useState(toLocalISODate(new Date(booking.start)));
+  const [slots, setSlots] = useState([]);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    setSlotsLoading(true);
+    setSelectedSlot(null);
+    fetch(`${API_BASE}/api/admin/availability?date=${date}`, { credentials: 'include' })
+      .then((r) => r.json())
+      .then((data) => {
+        setSlots(data.slots || []);
+        setSlotsLoading(false);
+      })
+      .catch(() => setSlotsLoading(false));
+  }, [date]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedSlot) {
+      setError('Select a new time first.');
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/bookings/${booking.id}/reschedule`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ newStartISO: selectedSlot }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not reschedule this booking.');
+      onDone();
+    } catch (err) {
+      setError(err.message || 'Could not reschedule this booking.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <form className="admin-walkin-form" onSubmit={handleSubmit}>
+      <h2 className="admin-walkin-title">Reschedule booking</h2>
+      <p className="admin-loading" style={{ marginTop: -6, marginBottom: 20 }}>
+        {booking.clientName || 'Client'} — {booking.treatment || 'Consultation'}, currently {formatDateTime(booking.start, 'Europe/London')}
+      </p>
+
+      <div className="admin-field">
+        <label>New date</label>
+        <MonthCalendar selectedDate={date} onSelect={setDate} minDate={todayISODate()} />
+      </div>
+
+      {slotsLoading && <p className="admin-loading">Loading available times…</p>}
+      {!slotsLoading && slots.length === 0 && <p className="admin-empty">No availability that day.</p>}
+      {!slotsLoading && slots.length > 0 && (
+        <div className="admin-slot-grid">
+          {slots.map((iso) => (
+            <button
+              type="button"
+              key={iso}
+              className={`admin-slot-btn${selectedSlot === iso ? ' selected' : ''}`}
+              onClick={() => setSelectedSlot(iso)}
+            >
+              {new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' })}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {error && (
+        <ul className="admin-form-errors">
+          <li>{error}</li>
+        </ul>
+      )}
+
+      <div className="pricing-form-actions" style={{ marginTop: 16 }}>
+        <button type="submit" className="btn btn-gold" disabled={submitting || !selectedSlot}>
+          {submitting ? 'Rescheduling…' : 'Confirm New Time'}
+        </button>
+        <button type="button" className="btn btn-outline" onClick={onCancel}>Cancel</button>
+      </div>
     </form>
   );
 }

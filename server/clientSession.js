@@ -1,5 +1,7 @@
 import session from 'express-session';
-import { verifyClientLogin, registerClient } from './clientStore.js';
+import { verifyClientLogin, registerClient, createPasswordResetToken, resetPasswordWithToken } from './clientStore.js';
+import { sendPasswordResetEmail } from './email.js';
+import { SESSION_COOKIE_MAX_AGE_MS } from './sessionConfig.js';
 
 // Same lightweight in-memory rate limiting pattern as adminSession.js,
 // kept as a separate map/keyspace so a burst of client login attempts
@@ -31,6 +33,40 @@ function clearAttempts(ip) {
   loginAttempts.delete(ip);
 }
 
+// A separate, more generous rate limit for "forgot password" requests —
+// keyed and windowed independently of login attempts so it never interacts
+// with (or gets tripped by) someone just mistyping their password.
+const resetRequestAttempts = new Map(); // ip -> { count, resetAt }
+const MAX_RESET_REQUESTS = 5;
+const RESET_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+
+function isResetRateLimited(ip) {
+  const entry = resetRequestAttempts.get(ip);
+  if (!entry) return false;
+  if (Date.now() > entry.resetAt) {
+    resetRequestAttempts.delete(ip);
+    return false;
+  }
+  return entry.count >= MAX_RESET_REQUESTS;
+}
+
+function recordResetRequest(ip) {
+  const entry = resetRequestAttempts.get(ip);
+  if (!entry || Date.now() > entry.resetAt) {
+    resetRequestAttempts.set(ip, { count: 1, resetAt: Date.now() + RESET_WINDOW_MS });
+  } else {
+    entry.count += 1;
+  }
+}
+
+// Where to send someone after they click the reset link in their email —
+// the public site, not this API. Same first-of-comma-list convention as
+// CORS's CLIENT_ORIGIN handling in index.js.
+function getSiteBaseUrl() {
+  const origins = (process.env.CLIENT_ORIGIN || 'http://localhost:5173').split(',');
+  return origins[0].trim();
+}
+
 // A second express-session instance with its own cookie name ("laderma.sid"
 // is Express's default, already used by the admin session — giving this
 // one an explicit different name keeps the two sessions fully independent
@@ -56,11 +92,12 @@ export function clientSessionMiddleware() {
     secret,
     resave: false,
     saveUninitialized: false,
+    rolling: true, // refresh maxAge on every request — an active session never gets cut off
     cookie: {
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? 'none' : 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days — clients expect to stay signed in
+      maxAge: SESSION_COOKIE_MAX_AGE_MS, // idle sign-out — see sessionConfig.js
     },
   });
 }
@@ -124,5 +161,52 @@ export function registerClientAuthRoutes(app) {
       return res.json({ authenticated: true, clientId: req.session.clientId });
     }
     res.json({ authenticated: false });
+  });
+
+  app.post('/api/account/forgot-password', async (req, res) => {
+    const ip = req.ip;
+    if (isResetRateLimited(ip)) {
+      return res.status(429).json({ error: 'Too many requests. Please try again in a few minutes.' });
+    }
+    recordResetRequest(ip);
+
+    const { email } = req.body || {};
+    // Always respond the same way regardless of whether the email matches
+    // an account — this is what stops "forgot password" being usable to
+    // check which emails have an account on this site.
+    const genericResponse = { success: true, message: 'If an account exists for that email, a reset link has been sent.' };
+
+    if (!email) return res.json(genericResponse);
+
+    try {
+      const result = await createPasswordResetToken(email);
+      if (result) {
+        const resetUrl = `${getSiteBaseUrl()}/account/reset-password?token=${result.token}`;
+        await sendPasswordResetEmail({ to: result.client.email, name: result.client.name, resetUrl });
+      }
+    } catch (err) {
+      console.error('Failed to process forgot-password request:', err);
+      // Still return the generic response — don't leak whether it failed
+      // because of a bad email vs. a real server error.
+    }
+
+    res.json(genericResponse);
+  });
+
+  app.post('/api/account/reset-password', async (req, res) => {
+    const { token, password } = req.body || {};
+    if (!token || !password) {
+      return res.status(400).json({ error: 'A reset token and new password are required.' });
+    }
+
+    try {
+      const client = await resetPasswordWithToken(token, password);
+      // Sign them in immediately — they just proved account ownership via
+      // the emailed link, no reason to make them log in again right after.
+      req.session.clientId = client.id;
+      res.json({ success: true, client });
+    } catch (err) {
+      res.status(400).json({ error: err.message || 'Could not reset your password.' });
+    }
   });
 }

@@ -36,3 +36,8 @@
   font-size:0.78rem;
   color:var(--navy-ink-faint);
 }
+.auth-hint a{
+  color:var(--gold-deep);
+  text-decoration:underline;
+  text-underline-offset:2px;
+}

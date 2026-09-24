@@ -36,6 +36,11 @@
   line-height:1.65;
   color:var(--on-slate-ink-soft);
 }
+.cookie-consent-text a{
+  color:var(--on-slate-gold);
+  text-decoration:underline;
+  text-underline-offset:2px;
+}
 .cookie-consent-actions{
   display:flex;
   flex-direction:column;

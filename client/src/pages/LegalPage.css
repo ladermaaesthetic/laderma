@@ -1,0 +1,114 @@
+.privacy-wrap{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:40px;
+  align-items:start;
+}
+@media (min-width: 900px){
+  .privacy-wrap{
+    grid-template-columns:220px 1fr;
+    gap:64px;
+  }
+}
+
+.privacy-toc{
+  position:static;
+  border:1px solid var(--line);
+  background:var(--surface-1);
+  border-radius:1.2rem;
+  padding:20px;
+}
+@media (min-width: 900px){
+  .privacy-toc{ position:sticky; top:24px; }
+}
+.privacy-toc-label{
+  font-size:0.7rem;
+  text-transform:uppercase;
+  letter-spacing:0.14em;
+  color:var(--navy-ink-faint);
+  margin:0 0 12px;
+}
+.privacy-toc ol{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  counter-reset:toc;
+}
+.privacy-toc a{
+  font-size:0.86rem;
+  color:var(--navy-ink-mid);
+  line-height:1.4;
+}
+.privacy-toc a:hover{color:var(--gold-deep);}
+
+.privacy-content{
+  max-width:760px;
+  color:var(--navy-ink-soft);
+  font-size:0.95rem;
+  line-height:1.75;
+}
+.privacy-content section{
+  padding-top:36px;
+  margin-top:36px;
+  border-top:1px solid var(--line);
+  scroll-margin-top:24px;
+}
+.privacy-content section:first-child{
+  padding-top:0;
+  margin-top:0;
+  border-top:none;
+}
+.privacy-content h2{
+  font-family:'Cormorant Garamond', serif;
+  font-size:1.5rem;
+  color:var(--navy-ink);
+  margin:0 0 14px;
+}
+.privacy-content p{
+  margin:0 0 14px;
+}
+.privacy-content p:last-child{margin-bottom:0;}
+.privacy-content ul{
+  margin:0 0 14px;
+  padding-left:20px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.privacy-content a{
+  color:var(--gold-deep);
+  text-decoration:underline;
+  text-underline-offset:2px;
+}
+.privacy-content strong{color:var(--navy-ink);}
+
+.privacy-table{
+  width:100%;
+  border-collapse:collapse;
+  margin:0 0 14px;
+  font-size:0.88rem;
+}
+.privacy-table th,
+.privacy-table td{
+  text-align:left;
+  padding:10px 12px;
+  border:1px solid var(--line);
+  vertical-align:top;
+}
+.privacy-table th{
+  background:var(--surface-1);
+  font-size:0.72rem;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--navy-ink-faint);
+}
+.privacy-table code{
+  font-family:monospace;
+  font-size:0.85em;
+  background:var(--surface-1);
+  padding:2px 6px;
+  border-radius:0.4rem;
+}

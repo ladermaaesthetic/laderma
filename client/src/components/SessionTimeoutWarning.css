@@ -1,0 +1,77 @@
+.session-timeout-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:1200;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:rgba(20,26,38,0.6);
+  backdrop-filter:blur(4px);
+  animation:session-timeout-backdrop-in 0.25s ease;
+}
+@keyframes session-timeout-backdrop-in{
+  from{ opacity:0; }
+  to{ opacity:1; }
+}
+.session-timeout-card{
+  width:100%;
+  max-width:420px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  border-radius:1.6rem;
+  border:1px solid var(--line);
+  background:var(--white);
+  padding:32px;
+  box-shadow:var(--shadow-lg);
+  animation:session-timeout-in 0.3s ease;
+  text-align:center;
+}
+@keyframes session-timeout-in{
+  from{ opacity:0; transform:translateY(16px) scale(0.98); }
+  to{ opacity:1; transform:translateY(0) scale(1); }
+}
+.session-timeout-title{
+  font-family:'Cormorant Garamond', Georgia, serif;
+  font-size:1.5rem;
+  color:var(--navy-ink);
+  margin:0;
+}
+.session-timeout-text{
+  font-size:0.92rem;
+  line-height:1.6;
+  color:var(--navy-ink-mid);
+  margin:0;
+}
+.session-timeout-countdown{
+  font-size:2.2rem;
+  font-weight:700;
+  color:var(--gold-deep);
+  font-variant-numeric:tabular-nums;
+  margin:0;
+}
+.session-timeout-actions{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:4px;
+}
+.session-timeout-signout{
+  background:transparent;
+  color:var(--navy-ink-faint);
+  border:none;
+  font-size:0.82rem;
+  text-decoration:underline;
+  cursor:pointer;
+  padding:6px;
+}
+.session-timeout-signout:hover{
+  color:var(--navy-ink-mid);
+}
+
+@media (min-width: 480px){
+  .session-timeout-actions{
+    flex-direction:column;
+  }
+}

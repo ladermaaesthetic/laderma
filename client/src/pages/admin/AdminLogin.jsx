@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './admin.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const timedOut = Boolean(location.state?.timedOut);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
@@ -44,6 +46,12 @@ export default function AdminLogin() {
         <p className="admin-eyebrow">La Derma</p>
         <h1 className="admin-login-title">Staff login</h1>
         <p className="admin-login-desc">Sign in to view and manage bookings.</p>
+
+        {timedOut && (
+          <p className="admin-error" style={{ marginBottom: 16 }}>
+            You were signed out after a while of inactivity, to keep client details secure. Please sign in again.
+          </p>
+        )}
 
         <div className="admin-field">
           <label htmlFor="username">Username</label>

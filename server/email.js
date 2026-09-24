@@ -5,8 +5,8 @@ import { buildBookingICS } from './ics.js';
 const LOGO_URL =
   'https://d2xsxph8kpxj0f.cloudfront.net/310519663448677533/D7fnEQUJWHBXWGYDWnFdAo/la-derma-logo_de083f56.jpg';
 
-const CLINIC_ADDRESS_TEXT = '21 Jackson St, Gateshead NE8 1EE';
-const CLINIC_MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=21+Jackson+St%2C+Gateshead+NE8+1EE';
+const CLINIC_ADDRESS_TEXT = '19 Jackson St, Gateshead NE8 1EE';
+const CLINIC_MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=19+Jackson+St%2C+Gateshead+NE8+1EE';
 
 function getResendClient() {
   if (!process.env.RESEND_API_KEY) return null;
@@ -24,6 +24,15 @@ function getBrevoClient() {
   if (!process.env.BREVO_API_KEY) return null;
   brevoClient = new BrevoClient({ apiKey: process.env.BREVO_API_KEY });
   return brevoClient;
+}
+
+// The public site's own URL (not this API's), for links inside emails that
+// should open the site itself — e.g. "Book again" after a cancellation.
+// CLIENT_ORIGIN can be a comma-separated list (see index.js); the first
+// entry is treated as the canonical public site.
+function getSiteBaseUrl() {
+  const origins = (process.env.CLIENT_ORIGIN || 'http://localhost:5173').split(',');
+  return origins[0].trim();
 }
 
 function formatDateTime(iso, timezone) {
@@ -177,6 +186,174 @@ export async function sendClientConfirmationEmail({ to, name, treatment, startIS
         content: Buffer.from(ics).toString('base64'),
       },
     ],
+  });
+}
+
+/**
+ * Sends the branded cancellation email — replaces what used to be Google
+ * Calendar's own generic cancellation notice (see the comment on
+ * `attendees` in calendar.js's createBooking for why that was happening).
+ * This is the ONLY cancellation notice a client receives now, whether the
+ * cancellation was made by the client themselves or by clinic staff.
+ */
+export async function sendClientCancellationEmail({ to, name, treatment, startISO, timezone }) {
+  const brevo = getBrevoClient();
+  if (!brevo) {
+    console.log('BREVO_API_KEY not set — skipping client cancellation email.');
+    return;
+  }
+
+  const { date, time } = formatDateTime(startISO, timezone);
+  const bookingUrl = `${getSiteBaseUrl()}/booking`;
+
+  const bodyHtml = `
+    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:#22314A; margin:0 0 16px;">Your consultation has been cancelled</h1>
+    <p style="font-size:15px; line-height:1.6; color:rgba(34,49,74,0.78); margin:0 0 24px;">
+      Hi ${name}, this confirms your consultation below is no longer booked.
+    </p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
+      ${detailRow('Treatment', treatment)}
+      ${detailRow('Was on', `${date}`)}
+      ${detailRow('Was at', `${time} (${timezone})`)}
+    </table>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+      <tr>
+        <td style="border-radius:999px; background-color:#C9A66B;">
+          <a href="${bookingUrl}" style="display:inline-block; padding:13px 28px; font-family: Arial, sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#22314A; text-decoration:none; font-weight:bold;">
+            Book Another Time
+          </a>
+        </td>
+      </tr>
+    </table>
+    <p style="font-size:14px; line-height:1.6; color:rgba(34,49,74,0.68); margin:0;">
+      If you didn't request this cancellation, or have any questions, just reply to this email.
+    </p>
+  `;
+
+  await brevo.transactionalEmails.sendTransacEmail({
+    sender: { email: process.env.BREVO_SENDER_EMAIL, name: 'La Derma' },
+    to: [{ email: to, name }],
+    subject: 'Your La Derma consultation has been cancelled',
+    htmlContent: emailShell({
+      preheader: `Your ${treatment} consultation on ${date} at ${time} has been cancelled.`,
+      bodyHtml,
+    }),
+  });
+}
+
+/**
+ * Sends the branded reschedule email — shows the previous time struck
+ * through against the new one, with a fresh "Add to Calendar" button/.ics
+ * for the new time. The underlying Calendar event keeps the same ID when
+ * rescheduled (see calendar.js's rescheduleBooking, which patches rather
+ * than delete+recreate), so the same /api/bookings/:id/calendar.ics link
+ * already used for the original confirmation still works here too.
+ */
+export async function sendClientRescheduledEmail({
+  to, name, treatment, oldStartISO, newStartISO, newEndISO, timezone, bookingId,
+}) {
+  const brevo = getBrevoClient();
+  if (!brevo) {
+    console.log('BREVO_API_KEY not set — skipping client reschedule email.');
+    return;
+  }
+
+  const was = formatDateTime(oldStartISO, timezone);
+  const now = formatDateTime(newStartISO, timezone);
+  const icsFilename = 'la-derma-consultation.ics';
+  const organizerEmail = process.env.BREVO_SENDER_EMAIL || process.env.CLINIC_NOTIFY_EMAIL || 'bookings@laderma.com';
+
+  const ics = buildBookingICS({
+    uid: `${bookingId}@laderma`,
+    startISO: newStartISO,
+    endISO: newEndISO,
+    treatment,
+    name,
+    organizerEmail,
+  });
+
+  const apiBase = process.env.PUBLIC_API_BASE || `http://localhost:${process.env.PORT || 4000}`;
+  const icsUrl = `${apiBase}/api/bookings/${bookingId}/calendar.ics`;
+
+  const bodyHtml = `
+    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:#22314A; margin:0 0 16px;">Your consultation has been rescheduled</h1>
+    <p style="font-size:15px; line-height:1.6; color:rgba(34,49,74,0.78); margin:0 0 24px;">
+      Hi ${name}, your ${treatment} consultation has moved to a new time:
+    </p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
+      ${detailRow('Treatment', treatment)}
+      ${detailRow('Previously', `<span style="text-decoration:line-through; color:rgba(34,49,74,0.45);">${was.date}, ${was.time}</span>`)}
+      ${detailRow('New date', now.date)}
+      ${detailRow('New time', `${now.time} (${timezone})`)}
+      ${detailRow('Location', `${CLINIC_ADDRESS_TEXT}<br/><a href="${CLINIC_MAPS_URL}" style="color:#9C7A46; text-decoration:none; font-size:13px;">Get directions →</a>`)}
+    </table>
+    ${addToCalendarButton(icsUrl)}
+    <p style="font-size:14px; line-height:1.6; color:rgba(34,49,74,0.68); margin:0;">
+      If this new time doesn't work, just reply to this email and we'll sort out another one.
+    </p>
+  `;
+
+  await brevo.transactionalEmails.sendTransacEmail({
+    sender: { email: process.env.BREVO_SENDER_EMAIL, name: 'La Derma' },
+    to: [{ email: to, name }],
+    subject: 'Your La Derma consultation has been rescheduled',
+    htmlContent: emailShell({
+      preheader: `Your ${treatment} consultation has moved to ${now.date} at ${now.time}.`,
+      bodyHtml,
+    }),
+    attachment: [
+      {
+        name: icsFilename,
+        content: Buffer.from(ics).toString('base64'),
+      },
+    ],
+  });
+}
+
+/**
+ * Sends the "reset your password" link for a client account. The link
+ * itself (with the raw token) is only ever handed to Brevo here — the
+ * server only ever stores a hash of it (see clientStore.js), so this email
+ * is the one place the usable token exists in plaintext.
+ */
+export async function sendPasswordResetEmail({ to, name, resetUrl }) {
+  const brevo = getBrevoClient();
+  if (!brevo) {
+    // Unlike the other "skipping" logs in this file, the link itself is
+    // logged here too — without Brevo configured there's no other way to
+    // get it while developing locally, since it's never stored anywhere
+    // in plaintext (see the note on this function above).
+    console.log(`BREVO_API_KEY not set — skipping password reset email. Reset link for ${to}: ${resetUrl}`);
+    return;
+  }
+
+  const bodyHtml = `
+    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:#22314A; margin:0 0 16px;">Reset your password</h1>
+    <p style="font-size:15px; line-height:1.6; color:rgba(34,49,74,0.78); margin:0 0 24px;">
+      Hi ${name}, we received a request to reset the password on your La Derma account. Click below to choose a new one — this link expires in 1 hour.
+    </p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+      <tr>
+        <td style="border-radius:999px; background-color:#C9A66B;">
+          <a href="${resetUrl}" style="display:inline-block; padding:13px 28px; font-family: Arial, sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#22314A; text-decoration:none; font-weight:bold;">
+            Reset Password
+          </a>
+        </td>
+      </tr>
+    </table>
+    <p style="font-size:13px; line-height:1.6; color:rgba(34,49,74,0.56); margin:0;">
+      If you didn't request this, you can safely ignore this email — your password won't change.
+    </p>
+  `;
+
+  await brevo.transactionalEmails.sendTransacEmail({
+    sender: { email: process.env.BREVO_SENDER_EMAIL, name: 'La Derma' },
+    to: [{ email: to, name }],
+    subject: 'Reset your La Derma password',
+    htmlContent: emailShell({
+      preheader: 'Reset the password on your La Derma account.',
+      bodyHtml,
+    }),
   });
 }
 

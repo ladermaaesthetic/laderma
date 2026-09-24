@@ -14,7 +14,14 @@
 }
 .intro-inner{
   position:relative;
-  padding:64px 0;
+  /* padding-top/bottom only, deliberately NOT the `padding: Npx 0`
+     shorthand — that resets left/right to 0 too, which was wiping out
+     the horizontal padding this element already gets from the .container
+     class it's combined with (see IntroHero.jsx), making the hero content
+     sit flush against the screen edges on mobile while every other
+     section correctly kept its edge margin. */
+  padding-top:48px;
+  padding-bottom:48px;
 }
 .intro-badge{
   display:inline-flex;
@@ -39,8 +46,11 @@
 .intro-title{
   margin-top:16px;
   max-width:36rem;
-  font-size:clamp(2.2rem, 4.8vw, 3.4rem);
-  line-height:1.08;
+  /* Lower floor than before — on phones, 4.8vw always lost to the old
+     2.2rem minimum, pinning the heading at a flat 35px+ regardless of
+     how small the screen was. */
+  font-size:clamp(1.75rem, 6vw, 3.4rem);
+  line-height:1.15;
 }
 .intro-lede{
   margin-top:16px;
@@ -51,5 +61,5 @@
 }
 
 @media (min-width: 900px){
-  .intro-inner{padding:96px 0;}
+  .intro-inner{padding-top:96px; padding-bottom:96px;}
 }

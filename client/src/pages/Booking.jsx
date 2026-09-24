@@ -332,6 +332,10 @@ export default function Booking() {
                 </button>
                 {!selectedSlot && <span className="form-status">Select a time above first</span>}
               </div>
+              <p className="panel-desc" style={{ marginTop: 12, fontSize: '0.82rem' }}>
+                By confirming, you agree to our <NavLink to="/terms-of-service">Terms of Service</NavLink> and{' '}
+                <NavLink to="/privacy-policy">Privacy Policy</NavLink>.
+              </p>
             </form>
           </div>
 

@@ -1,6 +1,11 @@
 import { google } from 'googleapis';
 import { getAuthorizedClient } from './googleAuth.js';
-import { sendClientConfirmationEmail, sendClinicNotificationEmail } from './email.js';
+import {
+  sendClientConfirmationEmail,
+  sendClinicNotificationEmail,
+  sendClientCancellationEmail,
+  sendClientRescheduledEmail,
+} from './email.js';
 
 const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID || 'primary';
 const CONSULTATION_MINUTES = Number(process.env.CONSULTATION_LENGTH_MINUTES || 60);
@@ -22,6 +27,27 @@ function getCalendarClient() {
   const auth = getAuthorizedClient();
   if (!auth) return null;
   return google.calendar({ version: 'v3', auth });
+}
+
+// Bookings deliberately do NOT add the client as a Calendar "attendee" (see
+// the comment on `attendees` in createBooking below) — so client name/email/
+// phone/notes only ever live in the event description, and every place that
+// needs them back out (admin listings, the .ics route, cancellation and
+// reschedule emails) parses it the same way, via this one function.
+export function parseBookingDescription(description) {
+  const text = description || '';
+  const treatmentMatch = /Treatment focus: (.+)/.exec(text);
+  const clientMatch = /Client: (.+)/.exec(text);
+  const emailMatch = /Email: (.+)/.exec(text);
+  const phoneMatch = /Phone: (.+)/.exec(text);
+  const notesMatch = /Notes: (.+)/.exec(text);
+  return {
+    treatment: treatmentMatch ? treatmentMatch[1] : null,
+    name: clientMatch ? clientMatch[1] : null,
+    email: emailMatch ? emailMatch[1] : null,
+    phone: phoneMatch ? phoneMatch[1] : null,
+    notes: notesMatch && notesMatch[1] !== '(none provided)' ? notesMatch[1] : null,
+  };
 }
 
 /**
@@ -124,7 +150,13 @@ export async function createBooking({ startISO, name, email, phone, treatment, n
       (notes ? `Notes: ${notes}` : 'Notes: (none provided)'),
     start: { dateTime: start.toISOString(), timeZone: TIMEZONE },
     end: { dateTime: end.toISOString(), timeZone: TIMEZONE },
-    attendees: [{ email, displayName: name }],
+    // Deliberately NOT adding the client as a Calendar attendee. Attendees
+    // get Google's own invite/update/cancellation emails straight from
+    // Google, entirely outside our control (independent of sendUpdates on
+    // later calls) — that's what was sending a generic Google email on
+    // cancellation instead of our branded one. Client name/email/phone
+    // live in the description above instead (see parseBookingDescription),
+    // and our own Brevo emails are the ONLY thing the client ever receives.
     reminders: {
       useDefault: false,
       overrides: [
@@ -215,28 +247,32 @@ export async function listUpcomingBookings() {
   });
 
   return (res.data.items || []).map((event) => {
-    const attendee = (event.attendees || [])[0] || {};
-    const treatmentMatch = /Treatment focus: (.+)/.exec(event.description || '');
-    const phoneMatch = /Phone: (.+)/.exec(event.description || '');
-    const notesMatch = /Notes: (.+)/.exec(event.description || '');
+    const details = parseBookingDescription(event.description);
 
     return {
       id: event.id,
       start: event.start?.dateTime || event.start?.date,
       end: event.end?.dateTime || event.end?.date,
       summary: event.summary,
-      treatment: treatmentMatch ? treatmentMatch[1] : null,
-      clientName: attendee.displayName || null,
-      clientEmail: attendee.email || null,
-      clientPhone: phoneMatch ? phoneMatch[1] : null,
-      notes: notesMatch && notesMatch[1] !== '(none provided)' ? notesMatch[1] : null,
+      treatment: details.treatment,
+      clientName: details.name,
+      clientEmail: details.email,
+      clientPhone: details.phone,
+      notes: details.notes,
     };
   });
 }
 
 /**
- * Cancels (deletes) a booking by its Google Calendar event ID. Used by
- * the admin panel to remove no-shows, cancellations, or mistaken bookings.
+ * Cancels (deletes) a booking by its Google Calendar event ID. Used by both
+ * a client cancelling their own booking and the admin panel cancelling any
+ * booking (no-shows, mistaken bookings, etc). Fetches the event first so we
+ * can send our own branded cancellation email — the event, and the
+ * description its client details live in, are gone once deleted. Best
+ * effort: a client/block event with no parseable email (e.g. an admin
+ * "unavailable" block, see deleteUnavailableBlock below) simply gets no
+ * email, and a failure to look the event up first still lets the delete
+ * proceed rather than blocking the cancellation on it.
  */
 export async function cancelBooking(eventId) {
   const calendar = getCalendarClient();
@@ -244,11 +280,111 @@ export async function cancelBooking(eventId) {
     throw new Error('CALENDAR_NOT_CONNECTED');
   }
 
+  let details = null;
+  try {
+    const existing = await calendar.events.get({ calendarId: CALENDAR_ID, eventId });
+    details = {
+      ...parseBookingDescription(existing.data.description),
+      startISO: existing.data.start?.dateTime || existing.data.start?.date,
+    };
+  } catch (err) {
+    console.error('Could not look up booking before cancelling (proceeding with delete):', err);
+  }
+
   await calendar.events.delete({
     calendarId: CALENDAR_ID,
     eventId,
     sendUpdates: 'none',
   });
+
+  if (details?.email && details?.startISO) {
+    try {
+      await sendClientCancellationEmail({
+        to: details.email,
+        name: details.name || 'there',
+        treatment: details.treatment || 'consultation',
+        startISO: details.startISO,
+        timezone: TIMEZONE,
+      });
+    } catch (err) {
+      console.error('Failed to send cancellation email:', err);
+    }
+  }
+}
+
+/**
+ * Moves an existing booking to a new start time (admin dashboard "Reschedule"
+ * action) by patching the same Calendar event in place, so it keeps the same
+ * event ID — and therefore the same .ics/"Add to Calendar" link already
+ * emailed to the client still resolves to the correct, updated time. Re-checks
+ * the new slot is free first, the same race-condition guard as createBooking,
+ * filtering out the event's own current slot (which would otherwise always
+ * show up as "busy against itself" if the new time overlaps the old one).
+ */
+export async function rescheduleBooking({ eventId, newStartISO }) {
+  const calendar = getCalendarClient();
+  if (!calendar) {
+    throw new Error('CALENDAR_NOT_CONNECTED');
+  }
+
+  const existing = await calendar.events.get({ calendarId: CALENDAR_ID, eventId });
+  const oldStartISO = existing.data.start?.dateTime;
+  const oldEndISO = existing.data.end?.dateTime;
+  if (!oldStartISO || !oldEndISO) {
+    throw new Error('BOOKING_NOT_FOUND');
+  }
+
+  const newStart = new Date(newStartISO);
+  const newEnd = new Date(newStart.getTime() + CONSULTATION_MINUTES * 60000);
+  const oldStart = new Date(oldStartISO);
+  const oldEnd = new Date(oldEndISO);
+
+  const freeBusyRes = await calendar.freebusy.query({
+    requestBody: {
+      timeMin: newStart.toISOString(),
+      timeMax: newEnd.toISOString(),
+      timeZone: TIMEZONE,
+      items: [{ id: CALENDAR_ID }],
+    },
+  });
+  const busy = (freeBusyRes.data.calendars[CALENDAR_ID]?.busy || []).filter((b) => {
+    const isThisBookingsOwnCurrentSlot =
+      new Date(b.start).getTime() === oldStart.getTime() && new Date(b.end).getTime() === oldEnd.getTime();
+    return !isThisBookingsOwnCurrentSlot;
+  });
+  if (busy.length > 0) {
+    throw new Error('SLOT_NO_LONGER_AVAILABLE');
+  }
+
+  const res = await calendar.events.patch({
+    calendarId: CALENDAR_ID,
+    eventId,
+    requestBody: {
+      start: { dateTime: newStart.toISOString(), timeZone: TIMEZONE },
+      end: { dateTime: newEnd.toISOString(), timeZone: TIMEZONE },
+    },
+    sendUpdates: 'none',
+  });
+
+  const details = parseBookingDescription(existing.data.description);
+  if (details.email) {
+    try {
+      await sendClientRescheduledEmail({
+        to: details.email,
+        name: details.name || 'there',
+        treatment: details.treatment || 'consultation',
+        oldStartISO,
+        newStartISO: newStart.toISOString(),
+        newEndISO: newEnd.toISOString(),
+        timezone: TIMEZONE,
+        bookingId: eventId,
+      });
+    } catch (err) {
+      console.error('Failed to send reschedule email:', err);
+    }
+  }
+
+  return res.data;
 }
 
 // ---------------------------------------------------------------------------

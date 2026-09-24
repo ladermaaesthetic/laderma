@@ -100,6 +100,10 @@ export default function Register() {
               <button type="submit" className="btn btn-gold btn-gold-lg auth-submit" disabled={submitting}>
                 {submitting ? 'Creating account…' : 'Create Account'}
               </button>
+              <p className="auth-hint" style={{ textAlign: 'center', marginTop: 12 }}>
+                By creating an account, you agree to our <NavLink to="/terms-of-service">Terms of Service</NavLink>{' '}
+                and <NavLink to="/privacy-policy">Privacy Policy</NavLink>.
+              </p>
             </form>
 
             <p className="auth-switch">

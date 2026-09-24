@@ -18,7 +18,7 @@ function escapeICSText(text) {
     .replace(/\n/g, '\\n');
 }
 
-const CLINIC_ADDRESS_TEXT = '21 Jackson St, Gateshead NE8 1EE';
+const CLINIC_ADDRESS_TEXT = '19 Jackson St, Gateshead NE8 1EE';
 
 export function buildBookingICS({ uid, startISO, endISO, treatment, name, notes, organizerEmail }) {
   const start = new Date(startISO);

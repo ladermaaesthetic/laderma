@@ -1,5 +1,6 @@
 import session from 'express-session';
 import { verifyAdminLogin } from './adminAuth.js';
+import { SESSION_COOKIE_MAX_AGE_MS } from './sessionConfig.js';
 
 // Simple in-memory rate limiting for login attempts, keyed by IP. This is
 // intentionally lightweight (not distributed-safe, resets on restart) —
@@ -55,11 +56,12 @@ export function sessionMiddleware() {
     secret,
     resave: false,
     saveUninitialized: false,
+    rolling: true, // refresh maxAge on every request — an active session never gets cut off
     cookie: {
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? 'none' : 'lax',
-      maxAge: 12 * 60 * 60 * 1000, // 12 hours
+      maxAge: SESSION_COOKIE_MAX_AGE_MS, // idle sign-out — see sessionConfig.js
     },
   });
 }

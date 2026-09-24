@@ -61,7 +61,10 @@
 .admin-field textarea{
   width:100%;
   font-family:'Manrope', sans-serif;
-  font-size:0.92rem;
+  /* 16px minimum on small screens — under that, iOS Safari auto-zooms
+     the whole page when the field is focused. Restored to the original
+     size at the desktop/tablet breakpoint below, where that isn't a risk. */
+  font-size:1rem;
   color:#22314A;
   background:#FBF9F5;
   border:1px solid rgba(169,131,71,0.2);
@@ -76,6 +79,9 @@
 }
 @media (min-width: 500px){
   .admin-field-row{grid-template-columns:1fr 1fr;}
+  .admin-field input,
+  .admin-field select,
+  .admin-field textarea{font-size:0.92rem;}
 }
 
 .admin-error{
@@ -235,6 +241,22 @@
   white-space:nowrap;
 }
 .admin-cancel-btn:hover{background:#F7E9E7;}
+.admin-row-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.admin-reschedule-btn{
+  font-size:0.78rem;
+  color:#9C7A2E;
+  background:none;
+  border:1px solid rgba(156,122,46,0.3);
+  border-radius:999px;
+  padding:6px 14px;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.admin-reschedule-btn:hover{background:#F3ECD9;}
 
 /* Tabs */
 .admin-tabs{

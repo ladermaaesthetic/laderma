@@ -13,9 +13,11 @@ import {
   getBookingById,
   listUpcomingBookings,
   cancelBooking,
+  rescheduleBooking,
   createUnavailableBlock,
   listUnavailableBlocks,
   deleteUnavailableBlock,
+  parseBookingDescription,
   CONSULTATION_MINUTES,
   TIMEZONE,
 } from './calendar.js';
@@ -272,19 +274,18 @@ app.get('/api/bookings/:id/calendar.ics', async (req, res) => {
   try {
     const event = await getBookingById(req.params.id);
 
-    // Pull the client's name/email back out of the event we stored it in,
-    // since we don't keep a separate database of bookings.
-    const attendee = (event.attendees || [])[0] || {};
-    const treatmentMatch = /Treatment focus: (.+)/.exec(event.description || '');
-    const notesMatch = /Notes: (.+)/.exec(event.description || '');
+    // Pull the client's name/notes back out of the event's description,
+    // since we don't keep a separate database of bookings (and clients are
+    // never added as Calendar attendees — see calendar.js's createBooking).
+    const details = parseBookingDescription(event.description);
 
     const ics = buildBookingICS({
       uid: `${event.id}@laderma`,
       startISO: event.start.dateTime,
       endISO: event.end.dateTime,
-      treatment: treatmentMatch ? treatmentMatch[1] : 'Consultation',
-      name: attendee.displayName || '',
-      notes: notesMatch && notesMatch[1] !== '(none provided)' ? notesMatch[1] : '',
+      treatment: details.treatment || 'Consultation',
+      name: details.name || '',
+      notes: details.notes || '',
       organizerEmail: process.env.CLINIC_NOTIFY_EMAIL || 'bookings@laderma.com',
     });
 
@@ -414,6 +415,34 @@ app.delete('/api/admin/bookings/:id', requireAdminAuth, async (req, res) => {
     }
     console.error('Failed to cancel booking:', req.params.id, err);
     res.status(500).json({ error: 'Could not cancel the booking.' });
+  }
+});
+
+// Moves a booking to a new time, in place (same event ID) — used by the
+// admin dashboard's "Reschedule" action. Sends the client our own branded
+// "rescheduled" email (see calendar.js's rescheduleBooking) instead of
+// leaving them to find out from a changed calendar invite.
+app.patch('/api/admin/bookings/:id/reschedule', requireAdminAuth, async (req, res) => {
+  const { newStartISO } = req.body || {};
+  if (!newStartISO || isNaN(Date.parse(newStartISO))) {
+    return res.status(400).json({ error: 'A valid new appointment time is required.' });
+  }
+
+  try {
+    const event = await rescheduleBooking({ eventId: req.params.id, newStartISO });
+    res.json({ rescheduled: true, eventId: event.id, start: event.start, end: event.end });
+  } catch (err) {
+    if (err.message === 'CALENDAR_NOT_CONNECTED') {
+      return res.status(503).json({ error: 'Calendar is not connected.' });
+    }
+    if (err.message === 'BOOKING_NOT_FOUND') {
+      return res.status(404).json({ error: 'That booking could not be found.' });
+    }
+    if (err.message === 'SLOT_NO_LONGER_AVAILABLE') {
+      return res.status(409).json({ error: 'That new time is no longer available.' });
+    }
+    console.error('Failed to reschedule booking:', req.params.id, err);
+    res.status(500).json({ error: 'Could not reschedule the booking.' });
   }
 });
 
