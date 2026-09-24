@@ -42,11 +42,20 @@ function buildMonthGrid(year, month) {
 
 // A reusable month-view calendar: shows the full month grid, lets the
 // admin (or the walk-in form) click any date, and highlights today and
-// the selected date. Purely a date picker — it doesn't know about times.
-function MonthCalendar({ selectedDate, onSelect, minDate }) {
+// the selected date. Purely a date picker by default — it doesn't know
+// about times. Two optional props extend it for the Bookings tab's
+// overview: `counts` (a { 'YYYY-MM-DD': number } map) shows a small badge
+// under any date with bookings, and `onMonthChange(year, month)` — month
+// 1-indexed — fires whenever the visible month changes (including on
+// mount), so a parent can fetch counts for whatever range is on screen.
+function MonthCalendar({ selectedDate, onSelect, minDate, counts, onMonthChange }) {
   const selected = new Date(`${selectedDate}T00:00:00`);
   const [viewYear, setViewYear] = useState(selected.getFullYear());
   const [viewMonth, setViewMonth] = useState(selected.getMonth());
+
+  useEffect(() => {
+    onMonthChange?.(viewYear, viewMonth + 1);
+  }, [viewYear, viewMonth, onMonthChange]);
 
   const today = todayISODate();
   const min = minDate || null;
@@ -85,6 +94,7 @@ function MonthCalendar({ selectedDate, onSelect, minDate }) {
           const isToday = iso === today;
           const isSelected = iso === selectedDate;
           const isPast = min ? iso < min : false;
+          const count = counts?.[iso] || 0;
           return (
             <button
               type="button"
@@ -94,6 +104,7 @@ function MonthCalendar({ selectedDate, onSelect, minDate }) {
               onClick={() => onSelect(iso)}
             >
               {d.getDate()}
+              {count > 0 && <span className="month-cal-day-count">{count}</span>}
             </button>
           );
         })}
@@ -115,13 +126,20 @@ export default function AdminDashboard() {
   const [username, setUsername] = useState(null);
   const [activeTab, setActiveTab] = useState('bookings');
 
-  const [bookings, setBookings] = useState([]);
-  const [bookingsError, setBookingsError] = useState(null);
-  const [loadingBookings, setLoadingBookings] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(null);
-
   const [showWalkInForm, setShowWalkInForm] = useState(false);
   const [reschedulingBooking, setReschedulingBooking] = useState(null);
+
+  // --- Bookings calendar: a month's per-day counts, plus one selected
+  // day's full booking details below it. Replaces what used to be a flat
+  // "all upcoming bookings" table with an actual overview — see calendar.js's
+  // getBookingCountsForMonth/listBookingsForDate.
+  const [selectedDate, setSelectedDate] = useState(todayISODate());
+  const [monthCounts, setMonthCounts] = useState({});
+  const [viewedMonth, setViewedMonth] = useState(null); // { year, month } the calendar currently shows
+  const [dayBookings, setDayBookings] = useState([]);
+  const [dayLoading, setDayLoading] = useState(true);
+  const [dayError, setDayError] = useState(null);
+  const [completingId, setCompletingId] = useState(null);
 
   // --- Auth check on mount ---
   useEffect(() => {
@@ -138,9 +156,24 @@ export default function AdminDashboard() {
       .catch(() => navigate('/admin'));
   }, [navigate]);
 
-  // --- Bookings polling ---
-  const loadBookings = useCallback(() => {
-    fetch(`${API_BASE}/api/admin/bookings`, { credentials: 'include' })
+  const loadMonthCounts = useCallback((year, month) => {
+    fetch(`${API_BASE}/api/admin/bookings/counts?year=${year}&month=${month}`, { credentials: 'include' })
+      .then((r) => (r.status === 401 ? null : r.json()))
+      .then((data) => {
+        if (data?.counts) setMonthCounts(data.counts);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleMonthChange = useCallback((year, month) => {
+    setViewedMonth({ year, month });
+    loadMonthCounts(year, month);
+  }, [loadMonthCounts]);
+
+  const loadDayBookings = useCallback((date) => {
+    setDayLoading(true);
+    setDayError(null);
+    fetch(`${API_BASE}/api/admin/bookings/by-date?date=${date}`, { credentials: 'include' })
       .then((r) => {
         if (r.status === 401) {
           navigate('/admin');
@@ -151,26 +184,32 @@ export default function AdminDashboard() {
       .then((data) => {
         if (!data) return;
         if (data.error) {
-          setBookingsError(data.error);
+          setDayError(data.error);
         } else {
-          setBookingsError(null);
-          setBookings(data.bookings || []);
-          setLastUpdated(new Date());
+          setDayBookings(data.bookings || []);
         }
-        setLoadingBookings(false);
+        setDayLoading(false);
       })
       .catch(() => {
-        setBookingsError('Could not reach the server.');
-        setLoadingBookings(false);
+        setDayError('Could not reach the server.');
+        setDayLoading(false);
       });
   }, [navigate]);
 
   useEffect(() => {
     if (checkingAuth) return;
-    loadBookings();
-    const interval = setInterval(loadBookings, POLL_INTERVAL_MS);
+    loadDayBookings(selectedDate);
+    const interval = setInterval(() => loadDayBookings(selectedDate), POLL_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [checkingAuth, loadBookings]);
+  }, [checkingAuth, selectedDate, loadDayBookings]);
+
+  // After anything that changes a booking (cancel/reschedule/complete/new
+  // walk-in), refresh both the selected day's list and the visible month's
+  // counts — a walk-in or reschedule can change which days have bookings.
+  const refreshAll = useCallback(() => {
+    loadDayBookings(selectedDate);
+    if (viewedMonth) loadMonthCounts(viewedMonth.year, viewedMonth.month);
+  }, [loadDayBookings, selectedDate, viewedMonth, loadMonthCounts]);
 
   const handleLogout = useCallback(async (timedOut) => {
     await fetch(`${API_BASE}/api/admin/logout`, { method: 'POST', credentials: 'include' });
@@ -178,7 +217,7 @@ export default function AdminDashboard() {
   }, [navigate]);
 
   // Idle sign-out: staff computers at the front desk sit unattended between
-  // clients, and the bookings table shows every client's full name, email
+  // clients, and the bookings list shows every client's full name, email
   // and phone — so an idle admin session auto-signs-out (with a warning
   // first) the same way client accounts do. See hooks/useIdleTimeout.js and
   // config/sessionTimeout.js for the shared behaviour/durations.
@@ -195,15 +234,33 @@ export default function AdminDashboard() {
   });
 
   const handleCancel = async (id) => {
-    if (!confirm('Cancel this booking? This cannot be undone.')) return;
+    if (!confirm('Cancel this booking? The client will be emailed to let them know. This cannot be undone.')) return;
     const res = await fetch(`${API_BASE}/api/admin/bookings/${id}`, {
       method: 'DELETE',
       credentials: 'include',
     });
     if (res.ok) {
-      setBookings((prev) => prev.filter((b) => b.id !== id));
+      refreshAll();
     } else {
       alert('Could not cancel the booking. Please try again.');
+    }
+  };
+
+  const handleComplete = async (id) => {
+    if (!confirm("Mark this booking as completed? The client will be emailed a thank-you and asked to leave a review.")) return;
+    setCompletingId(id);
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/bookings/${id}/complete`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (res.ok) {
+        refreshAll();
+      } else {
+        alert('Could not mark this booking as completed. Please try again.');
+      }
+    } finally {
+      setCompletingId(null);
     }
   };
 
@@ -267,16 +324,13 @@ export default function AdminDashboard() {
             >
               {showWalkInForm ? 'Close' : '+ New Walk-in Booking'}
             </button>
-            <span className="admin-updated">
-              {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString('en-GB')}` : ''}
-            </span>
           </div>
 
           {showWalkInForm && (
             <WalkInForm
               onCreated={() => {
                 setShowWalkInForm(false);
-                loadBookings();
+                refreshAll();
               }}
             />
           )}
@@ -286,68 +340,76 @@ export default function AdminDashboard() {
               booking={reschedulingBooking}
               onDone={() => {
                 setReschedulingBooking(null);
-                loadBookings();
+                refreshAll();
               }}
               onCancel={() => setReschedulingBooking(null)}
             />
           )}
 
-          {bookingsError && (
-            <div className="admin-notice admin-notice-error">{bookingsError}</div>
-          )}
-
-          {loadingBookings && !bookingsError && (
-            <p className="admin-loading">Loading bookings…</p>
-          )}
-
-          {!loadingBookings && !bookingsError && bookings.length === 0 && (
-            <p className="admin-empty">No upcoming bookings.</p>
-          )}
-
-          {!loadingBookings && bookings.length > 0 && (
-            <div className="admin-table-wrap">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>When</th>
-                    <th>Client</th>
-                    <th>Contact</th>
-                    <th>Treatment</th>
-                    <th>Notes</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bookings.map((b) => (
-                    <tr key={b.id}>
-                      <td>{formatDateTime(b.start, 'Europe/London')}</td>
-                      <td>{b.clientName || '—'}</td>
-                      <td>
-                        <div>{b.clientEmail || '—'}</div>
-                        <div className="admin-muted">{b.clientPhone || ''}</div>
-                      </td>
-                      <td>{b.treatment || '—'}</td>
-                      <td className="admin-notes-cell">{b.notes || '—'}</td>
-                      <td>
-                        <div className="admin-row-actions">
-                          <button
-                            className="admin-reschedule-btn"
-                            onClick={() => {
-                              setShowWalkInForm(false);
-                              setReschedulingBooking(b);
-                            }}
-                          >
-                            Reschedule
-                          </button>
-                          <button className="admin-cancel-btn" onClick={() => handleCancel(b.id)}>Cancel</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="availability-grid">
+            <div>
+              <p className="panel-eyebrow">Calendar</p>
+              <MonthCalendar
+                selectedDate={selectedDate}
+                onSelect={setSelectedDate}
+                counts={monthCounts}
+                onMonthChange={handleMonthChange}
+              />
             </div>
-          )}
+
+            <div className="sidebar">
+              <div className="sidebar-block">
+                <p className="sidebar-block-label">{formatDateLabel(selectedDate)}</p>
+
+                {dayError && <div className="admin-notice admin-notice-error">{dayError}</div>}
+                {dayLoading && !dayError && <p className="admin-loading">Loading bookings…</p>}
+                {!dayLoading && !dayError && dayBookings.length === 0 && (
+                  <p className="admin-empty">No bookings this day.</p>
+                )}
+
+                {!dayLoading && dayBookings.length > 0 && (
+                  <div className="day-booking-list">
+                    {dayBookings.map((b) => (
+                      <div className="day-booking-card" key={b.id}>
+                        <div className="day-booking-head">
+                          <span className="day-booking-time">
+                            {new Date(b.start).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' })}
+                          </span>
+                          {b.completed && <span className="day-booking-completed">✓ Completed</span>}
+                        </div>
+                        <p className="day-booking-name">{b.clientName || '—'}</p>
+                        <p className="admin-muted">{b.treatment || '—'}</p>
+                        <p className="admin-muted">{b.clientEmail || '—'}{b.clientPhone ? ` · ${b.clientPhone}` : ''}</p>
+                        {b.notes && <p className="admin-notes-cell">{b.notes}</p>}
+
+                        {!b.completed && (
+                          <div className="admin-row-actions" style={{ marginTop: 12 }}>
+                            <button
+                              className="admin-reschedule-btn"
+                              onClick={() => {
+                                setShowWalkInForm(false);
+                                setReschedulingBooking(b);
+                              }}
+                            >
+                              Reschedule
+                            </button>
+                            <button className="admin-cancel-btn" onClick={() => handleCancel(b.id)}>Cancel</button>
+                            <button
+                              className="admin-complete-btn"
+                              disabled={completingId === b.id}
+                              onClick={() => handleComplete(b.id)}
+                            >
+                              {completingId === b.id ? 'Completing…' : 'Complete'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </>
       )}
 

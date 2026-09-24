@@ -20,7 +20,12 @@
   align-items:center;
   justify-content:space-between;
   gap:16px;
-  padding:16px 0;
+  /* padding-top/bottom only — this element is combined with .container
+     (see Header.jsx), and the `padding: 16px 0` shorthand this used to be
+     was zeroing out .container's horizontal padding, leaving the header
+     content flush against the screen edges on every screen size. */
+  padding-top:16px;
+  padding-bottom:16px;
 }
 .brand{
   display:flex;
@@ -382,9 +387,15 @@
 }
 .mobile-nav-panel-secondary{
   transform:translateX(100%);
+  /* Explicitly non-interactive while off-screen — without this, the
+     secondary panel (and its Back button) can still catch taps for the
+     0.3s it's sliding away after Back is pressed, right where the root
+     panel's own content is fading back in underneath it. */
+  pointer-events:none;
 }
 .mobile-nav-panel-secondary.mobile-nav-panel-active{
   transform:translateX(0);
+  pointer-events:auto;
 }
 
 .mobile-nav-inner{
@@ -475,12 +486,6 @@
 .mobile-nav-subitem-row:focus-visible{
   color:var(--gold-deep);
 }
-.mobile-nav-subitem-price{
-  flex-shrink:0;
-  font-size:0.82rem;
-  color:var(--navy-ink-faint);
-}
-
 .mobile-nav-inner a.mobile-nav-cta{
   margin-top:28px;
   font-family:'Manrope', sans-serif;

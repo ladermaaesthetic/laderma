@@ -106,7 +106,10 @@
   flex-direction:column;
   gap:24px;
   align-items:flex-start;
-  padding:56px 0;
+  /* padding-top/bottom only — see the note on .header-inner in
+     Header.css for why a `padding: Npx 0` shorthand here was a bug. */
+  padding-top:56px;
+  padding-bottom:56px;
 }
 .reviews-cta-inner h2{
   color:#F6EFE2;

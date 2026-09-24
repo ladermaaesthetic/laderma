@@ -369,8 +369,7 @@ export default function Header() {
                     className="mobile-nav-subitem-row"
                     onClick={() => goToCategory(mobileActiveCategory.id)}
                   >
-                    <span>{item.name}</span>
-                    <span className="mobile-nav-subitem-price">{item.price}</span>
+                    {item.name}
                   </button>
                 ))}
               </>

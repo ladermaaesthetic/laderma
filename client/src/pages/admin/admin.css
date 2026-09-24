@@ -192,36 +192,6 @@
   font-size:0.84rem;
 }
 
-/* Bookings table */
-.admin-table-wrap{
-  max-width:1200px;
-  margin:0 auto;
-  overflow-x:auto;
-  background:#FFFFFF;
-  border:1px solid rgba(169,131,71,0.16);
-  border-radius:1.2rem;
-}
-.admin-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:0.88rem;
-}
-.admin-table th{
-  text-align:left;
-  font-size:0.7rem;
-  text-transform:uppercase;
-  letter-spacing:0.08em;
-  color:rgba(34,49,74,0.5);
-  padding:14px 16px;
-  border-bottom:1px solid rgba(169,131,71,0.16);
-  white-space:nowrap;
-}
-.admin-table td{
-  padding:14px 16px;
-  border-bottom:1px solid rgba(169,131,71,0.1);
-  vertical-align:top;
-}
-.admin-table tr:last-child td{border-bottom:none;}
 .admin-muted{
   font-size:0.8rem;
   color:rgba(34,49,74,0.5);
@@ -257,6 +227,56 @@
   white-space:nowrap;
 }
 .admin-reschedule-btn:hover{background:#F3ECD9;}
+.admin-complete-btn{
+  font-size:0.78rem;
+  color:#FFFFFF;
+  background:#5F7768;
+  border:1px solid #5F7768;
+  border-radius:999px;
+  padding:6px 14px;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.admin-complete-btn:hover{background:#4A6355;}
+.admin-complete-btn:disabled{opacity:0.6; cursor:not-allowed;}
+
+/* Bookings tab — selected day's booking list */
+.day-booking-list{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  margin-top:12px;
+}
+.day-booking-card{
+  border:1px solid rgba(169,131,71,0.16);
+  border-radius:1rem;
+  padding:16px;
+  background:#FFFFFF;
+}
+.day-booking-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:6px;
+}
+.day-booking-time{
+  font-size:0.78rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  color:#A98347;
+}
+.day-booking-completed{
+  font-size:0.75rem;
+  font-weight:600;
+  color:#5F7768;
+}
+.day-booking-name{
+  font-size:0.98rem;
+  font-weight:600;
+  color:#22314A;
+  margin:0 0 2px;
+}
 
 /* Tabs */
 .admin-tabs{
@@ -493,8 +513,10 @@
 .month-cal-day{
   aspect-ratio:1;
   display:flex;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
+  gap:2px;
   border-radius:0.6rem;
   font-size:0.86rem;
   color:#22314A;
@@ -506,6 +528,21 @@
 .month-cal-day.outside{color:rgba(34,49,74,0.28);}
 .month-cal-day.today{font-weight:700; color:#A98347;}
 .month-cal-day.selected{background:#22314A; color:#F6EFE2;}
+.month-cal-day-count{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:15px;
+  height:15px;
+  padding:0 3px;
+  border-radius:999px;
+  background:#A98347;
+  color:#FFFFFF;
+  font-size:0.6rem;
+  font-weight:700;
+  line-height:1;
+}
+.month-cal-day.selected .month-cal-day-count{background:#F6EFE2; color:#22314A;}
 .month-cal-day:disabled{
   color:rgba(34,49,74,0.22);
   cursor:not-allowed;

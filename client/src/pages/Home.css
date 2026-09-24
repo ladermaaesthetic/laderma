@@ -16,7 +16,10 @@
   position:relative;
   display:grid;
   gap:48px;
-  padding:64px 0;
+  /* padding-top/bottom only — see the note on .header-inner in
+     Header.css for why the old `padding: 64px 0` shorthand was a bug. */
+  padding-top:64px;
+  padding-bottom:64px;
 }
 .hero-badge{
   display:inline-flex;
@@ -297,7 +300,7 @@
   .about-checks{grid-template-columns:1fr 1fr;}
 }
 @media (min-width: 900px){
-  .hero-inner{grid-template-columns:0.88fr 1.12fr; align-items:center; padding:96px 0;}
+  .hero-inner{grid-template-columns:0.88fr 1.12fr; align-items:center; padding-top:96px; padding-bottom:96px;}
   .hero-media-grid{grid-template-columns:1.1fr 0.9fr; align-items:end;}
   .about-grid{grid-template-columns:1.05fr 0.95fr;}
   .booking-grid{grid-template-columns:0.9fr 1.1fr;}

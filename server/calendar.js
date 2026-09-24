@@ -5,6 +5,7 @@ import {
   sendClinicNotificationEmail,
   sendClientCancellationEmail,
   sendClientRescheduledEmail,
+  sendClientCompletionEmail,
 } from './email.js';
 
 const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID || 'primary';
@@ -226,41 +227,132 @@ export async function getBookingById(eventId) {
   return res.data;
 }
 
+// A booking's own extendedProperties marker for "the admin has marked this
+// appointment complete" — same pattern as BLOCK_MARKER further down, just
+// for bookings instead of blocked-out time.
+const COMPLETED_MARKER_KEY = 'ladermaCompleted';
+
+function isBlockEvent(event) {
+  return event.extendedProperties?.private?.ladermaBlock === 'true';
+}
+
+function eventToBooking(event) {
+  const details = parseBookingDescription(event.description);
+  return {
+    id: event.id,
+    start: event.start?.dateTime || event.start?.date,
+    end: event.end?.dateTime || event.end?.date,
+    treatment: details.treatment,
+    clientName: details.name,
+    clientEmail: details.email,
+    clientPhone: details.phone,
+    notes: details.notes,
+    completed: event.extendedProperties?.private?.[COMPLETED_MARKER_KEY] === 'true',
+  };
+}
+
 /**
- * Lists all upcoming bookings with full client details — used by the
- * admin panel only. The public site never calls this; the public
- * availability endpoint deliberately only returns free/busy times, not
- * event contents, to protect client privacy.
+ * Returns how many client bookings (never admin "unavailable" blocks) fall
+ * on each date within the given month — used by the admin dashboard's
+ * calendar to show a count under every day without needing a separate
+ * request per day.
  */
-export async function listUpcomingBookings() {
+export async function getBookingCountsForMonth(year, month) {
   const calendar = getCalendarClient();
   if (!calendar) {
     throw new Error('CALENDAR_NOT_CONNECTED');
   }
 
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 1); // first of the following month, exclusive
+
   const res = await calendar.events.list({
     calendarId: CALENDAR_ID,
-    timeMin: new Date().toISOString(),
+    timeMin: start.toISOString(),
+    timeMax: end.toISOString(),
+    maxResults: 2500,
+    singleEvents: true,
+    orderBy: 'startTime',
+  });
+
+  const counts = {};
+  for (const event of res.data.items || []) {
+    if (isBlockEvent(event)) continue;
+    const dateStr = (event.start?.dateTime || event.start?.date || '').slice(0, 10);
+    if (!dateStr) continue;
+    counts[dateStr] = (counts[dateStr] || 0) + 1;
+  }
+  return counts;
+}
+
+/**
+ * Lists every booking (past, present or future — unlike the public
+ * availability endpoint, which only ever looks forward) on one specific
+ * date, with full client details. Used by the admin dashboard's calendar
+ * day view. Admin-only: the public site never calls this.
+ */
+export async function listBookingsForDate(dateStr) {
+  const calendar = getCalendarClient();
+  if (!calendar) {
+    throw new Error('CALENDAR_NOT_CONNECTED');
+  }
+
+  const dayStart = new Date(`${dateStr}T00:00:00`);
+  const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60000);
+
+  const res = await calendar.events.list({
+    calendarId: CALENDAR_ID,
+    timeMin: dayStart.toISOString(),
+    timeMax: dayEnd.toISOString(),
     maxResults: 250,
     singleEvents: true,
     orderBy: 'startTime',
   });
 
-  return (res.data.items || []).map((event) => {
-    const details = parseBookingDescription(event.description);
+  return (res.data.items || [])
+    .filter((event) => !isBlockEvent(event))
+    .map(eventToBooking);
+}
 
-    return {
-      id: event.id,
-      start: event.start?.dateTime || event.start?.date,
-      end: event.end?.dateTime || event.end?.date,
-      summary: event.summary,
-      treatment: details.treatment,
-      clientName: details.name,
-      clientEmail: details.email,
-      clientPhone: details.phone,
-      notes: details.notes,
-    };
+/**
+ * Marks a booking as completed (an appointment that's already happened)
+ * and sends the client a branded "thanks for visiting" email inviting a
+ * review and a follow on social media. Tagged with an extendedProperties
+ * marker on the event itself, the same pattern createUnavailableBlock uses
+ * below — no separate database needed, and it survives exactly as long as
+ * the booking itself does.
+ */
+export async function completeBooking(eventId) {
+  const calendar = getCalendarClient();
+  if (!calendar) {
+    throw new Error('CALENDAR_NOT_CONNECTED');
+  }
+
+  const existing = await calendar.events.get({ calendarId: CALENDAR_ID, eventId });
+
+  await calendar.events.patch({
+    calendarId: CALENDAR_ID,
+    eventId,
+    requestBody: {
+      extendedProperties: { private: { [COMPLETED_MARKER_KEY]: 'true' } },
+    },
+    sendUpdates: 'none',
   });
+
+  const details = parseBookingDescription(existing.data.description);
+  if (details.email) {
+    try {
+      await sendClientCompletionEmail({
+        to: details.email,
+        name: details.name || 'there',
+        treatment: details.treatment || 'consultation',
+      });
+    } catch (err) {
+      console.error('Failed to send completion email:', err);
+    }
+  }
+
+  return eventToBooking({ ...existing.data, extendedProperties: { private: { [COMPLETED_MARKER_KEY]: 'true' } } });
 }
 
 /**

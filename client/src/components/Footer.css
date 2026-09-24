@@ -5,7 +5,12 @@
   display:grid;
   grid-template-columns:1fr;
   gap:40px;
-  padding:56px 0 32px;
+  /* padding-top/bottom only — see the note on .header-inner in
+     Header.css for why a `padding: Npx 0 Npx` shorthand here was a bug:
+     it was zeroing out .container's horizontal padding, leaving every
+     footer link and address flush against the screen edges on mobile. */
+  padding-top:56px;
+  padding-bottom:32px;
 }
 .footer-brand-col{
   display:flex;
@@ -103,7 +108,8 @@
 
 .footer-bottom{
   border-top:1px solid rgba(253,251,247,0.18);
-  padding:20px 0;
+  padding-top:20px;
+  padding-bottom:20px;
 }
 .footer-bottom p{
   font-size:0.78rem;

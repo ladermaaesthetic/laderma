@@ -191,8 +191,8 @@ export default function Booking() {
         <section>
           <div className="container">
             <div className="notice notice-pending">
-              <strong>Online booking isn't live yet.</strong>
-              <p>The clinic hasn't connected its Google Calendar to the booking system. Please check back shortly, or contact the clinic directly to arrange your consultation.</p>
+              <strong>Booking system is currently offline.</strong>
+              <p>Please check back shortly, or contact the clinic directly to arrange your consultation.</p>
             </div>
           </div>
         </section>

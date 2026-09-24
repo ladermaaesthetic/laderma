@@ -8,6 +8,28 @@ const LOGO_URL =
 const CLINIC_ADDRESS_TEXT = '19 Jackson St, Gateshead NE8 1EE';
 const CLINIC_MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=19+Jackson+St%2C+Gateshead+NE8+1EE';
 
+// Mirrors client/src/data/siteData.js's SOCIAL_LINKS — kept as a separate
+// copy here for the same reason CLINIC_ADDRESS_TEXT is: this is the server,
+// a completely separate app/bundle from the client, so nothing there can be
+// imported directly. Update both places if either ever changes.
+const FACEBOOK_URL = 'https://www.facebook.com/people/La-Derma-Aesthetic-Clinic/100085383892345/';
+const INSTAGRAM_URL = 'https://www.instagram.com/ladermaaesthetic';
+
+// Color palette — kept in sync with the site's own CSS custom properties
+// (client/src/styles/global.css's :root block). Update both places
+// together if the site's palette ever changes, so every email stays on
+// brand rather than silently drifting from the actual site colours.
+const COLOR_CREAM_BG = '#FAF6EF';
+const COLOR_WHITE = '#FFFFFF';
+const COLOR_NAVY_INK = '#22314A';
+const COLOR_NAVY_INK_SOFT = 'rgba(34,49,74,0.78)';
+const COLOR_NAVY_INK_MID = 'rgba(34,49,74,0.68)';
+const COLOR_NAVY_INK_FAINT = 'rgba(34,49,74,0.56)';
+const COLOR_NAVY_INK_GHOST = 'rgba(34,49,74,0.46)';
+const COLOR_GOLD = '#BE9861';
+const COLOR_GOLD_DEEP = '#9C7A46';
+const COLOR_LINE = 'rgba(156,122,70,0.15)';
+
 function getResendClient() {
   if (!process.env.RESEND_API_KEY) return null;
   return new Resend(process.env.RESEND_API_KEY);
@@ -52,27 +74,27 @@ function emailShell({ preheader, bodyHtml }) {
   return `
   <!DOCTYPE html>
   <html>
-  <body style="margin:0; padding:0; background-color:#FAF6EF; font-family: Georgia, 'Times New Roman', serif;">
-    <span style="display:none; font-size:1px; color:#FAF6EF;">${preheader}</span>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#FAF6EF; padding:32px 16px;">
+  <body style="margin:0; padding:0; background-color:${COLOR_CREAM_BG}; font-family: Georgia, 'Times New Roman', serif;">
+    <span style="display:none; font-size:1px; color:${COLOR_CREAM_BG};">${preheader}</span>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${COLOR_CREAM_BG}; padding:32px 16px;">
       <tr>
         <td align="center">
-          <table role="presentation" width="100%" style="max-width:520px; background-color:#FFFFFF; border-radius:16px; overflow:hidden; border:1px solid rgba(169,131,71,0.16);">
+          <table role="presentation" width="100%" style="max-width:520px; background-color:${COLOR_WHITE}; border-radius:16px; overflow:hidden; border:1px solid ${COLOR_LINE};">
             <tr>
-              <td style="padding:32px 32px 24px; text-align:center; background-color:#FAF6EF; border-bottom:1px solid rgba(169,131,71,0.16);">
+              <td style="padding:32px 32px 24px; text-align:center; background-color:${COLOR_CREAM_BG}; border-bottom:1px solid ${COLOR_LINE};">
                 <img src="${LOGO_URL}" width="56" height="56" alt="La Derma" style="border-radius:50%; display:inline-block; margin-bottom:12px;" />
-                <div style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:#22314A; letter-spacing:0.5px;">La Derma</div>
-                <div style="font-family: Arial, sans-serif; font-size:10px; letter-spacing:3px; text-transform:uppercase; color:#9C7A46; margin-top:4px;">Results Led Aesthetic Care</div>
+                <div style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:${COLOR_NAVY_INK}; letter-spacing:0.5px;">La Derma</div>
+                <div style="font-family: Arial, sans-serif; font-size:10px; letter-spacing:3px; text-transform:uppercase; color:${COLOR_GOLD_DEEP}; margin-top:4px;">Results Led Aesthetic Care</div>
               </td>
             </tr>
             <tr>
-              <td style="padding:32px; font-family: Arial, sans-serif; color:#22314A;">
+              <td style="padding:32px; font-family: Arial, sans-serif; color:${COLOR_NAVY_INK};">
                 ${bodyHtml}
               </td>
             </tr>
             <tr>
-              <td style="padding:20px 32px; background-color:#FAF6EF; border-top:1px solid rgba(169,131,71,0.16); text-align:center;">
-                <div style="font-family: Arial, sans-serif; font-size:11px; color:rgba(34,49,74,0.5);">La Derma Aesthetic Clinic</div>
+              <td style="padding:20px 32px; background-color:${COLOR_CREAM_BG}; border-top:1px solid ${COLOR_LINE}; text-align:center;">
+                <div style="font-family: Arial, sans-serif; font-size:11px; color:${COLOR_NAVY_INK_GHOST};">La Derma Aesthetic Clinic</div>
               </td>
             </tr>
           </table>
@@ -86,9 +108,34 @@ function emailShell({ preheader, bodyHtml }) {
 function detailRow(label, value) {
   return `
     <tr>
-      <td style="padding:8px 0; font-size:13px; color:rgba(34,49,74,0.56); text-transform:uppercase; letter-spacing:1px; width:140px; vertical-align:top;">${label}</td>
-      <td style="padding:8px 0; font-size:15px; color:#22314A; vertical-align:top;">${value}</td>
+      <td style="padding:8px 0; font-size:13px; color:${COLOR_NAVY_INK_FAINT}; text-transform:uppercase; letter-spacing:1px; width:140px; vertical-align:top;">${label}</td>
+      <td style="padding:8px 0; font-size:15px; color:${COLOR_NAVY_INK}; vertical-align:top;">${value}</td>
     </tr>`;
+}
+
+// A solid gold button, reused for every email's main call to action.
+function goldButton(href, label) {
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+      <tr>
+        <td style="border-radius:999px; background-color:${COLOR_GOLD};">
+          <a href="${href}" style="display:inline-block; padding:13px 28px; font-family: Arial, sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:${COLOR_NAVY_INK}; text-decoration:none; font-weight:bold;">
+            ${label}
+          </a>
+        </td>
+      </tr>
+    </table>`;
+}
+
+// An outlined button — same shape as goldButton but for a secondary
+// action sitting alongside it (e.g. two review links side by side).
+function outlineButtonCell(href, label) {
+  return `
+    <td style="border-radius:999px; border:1px solid ${COLOR_GOLD}; padding:0 8px 0 0;">
+      <a href="${href}" style="display:inline-block; padding:12px 24px; font-family: Arial, sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:${COLOR_GOLD_DEEP}; text-decoration:none; font-weight:bold;">
+        ${label}
+      </a>
+    </td>`;
 }
 
 // The "Add to Calendar" button. It links to a URL on our own server that
@@ -101,16 +148,8 @@ function detailRow(label, value) {
 // as a fallback for anyone who'd rather open it directly from the email.
 function addToCalendarButton(icsUrl) {
   return `
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
-      <tr>
-        <td style="border-radius:999px; background-color:#C9A66B;">
-          <a href="${icsUrl}" style="display:inline-block; padding:13px 28px; font-family: Arial, sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#22314A; text-decoration:none; font-weight:bold;">
-            + Add to Calendar
-          </a>
-        </td>
-      </tr>
-    </table>
-    <p style="font-size:12px; line-height:1.6; color:rgba(34,49,74,0.5); margin:0 0 24px;">
+    ${goldButton(icsUrl, '+ Add to Calendar')}
+    <p style="font-size:12px; line-height:1.6; color:${COLOR_NAVY_INK_FAINT}; margin:0 0 24px;">
       Works with Apple Calendar and Google Calendar. If the button doesn't open your calendar app, the same event is also attached to this email as a file.
     </p>`;
 }
@@ -153,18 +192,18 @@ export async function sendClientConfirmationEmail({ to, name, treatment, startIS
   const icsUrl = `${apiBase}/api/bookings/${bookingId}/calendar.ics`;
 
   const bodyHtml = `
-    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:#22314A; margin:0 0 16px;">Your consultation is confirmed</h1>
-    <p style="font-size:15px; line-height:1.6; color:rgba(34,49,74,0.78); margin:0 0 24px;">
+    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:${COLOR_NAVY_INK}; margin:0 0 16px;">Your consultation is confirmed</h1>
+    <p style="font-size:15px; line-height:1.6; color:${COLOR_NAVY_INK_SOFT}; margin:0 0 24px;">
       Hi ${name}, thank you for booking with La Derma. Here are your consultation details:
     </p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
       ${detailRow('Treatment', treatment)}
       ${detailRow('Date', date)}
       ${detailRow('Time', `${time} (${timezone})`)}
-      ${detailRow('Location', `${CLINIC_ADDRESS_TEXT}<br/><a href="${CLINIC_MAPS_URL}" style="color:#9C7A46; text-decoration:none; font-size:13px;">Get directions →</a>`)}
+      ${detailRow('Location', `${CLINIC_ADDRESS_TEXT}<br/><a href="${CLINIC_MAPS_URL}" style="color:${COLOR_GOLD_DEEP}; text-decoration:none; font-size:13px;">Get directions →</a>`)}
     </table>
     ${addToCalendarButton(icsUrl)}
-    <p style="font-size:14px; line-height:1.6; color:rgba(34,49,74,0.68); margin:0;">
+    <p style="font-size:14px; line-height:1.6; color:${COLOR_NAVY_INK_MID}; margin:0;">
       If you need to reschedule or have any questions before your visit, just reply to this email.
     </p>
   `;
@@ -177,7 +216,7 @@ export async function sendClientConfirmationEmail({ to, name, treatment, startIS
     to: [{ email: to, name }],
     subject: 'Your La Derma consultation is confirmed',
     htmlContent: emailShell({
-      preheader: `Your ${treatment} consultation on ${date} at ${time} is confirmed.`,
+      preheader: `Your ${treatment} on ${date} at ${time} is confirmed.`,
       bodyHtml,
     }),
     attachment: [
@@ -207,35 +246,27 @@ export async function sendClientCancellationEmail({ to, name, treatment, startIS
   const bookingUrl = `${getSiteBaseUrl()}/booking`;
 
   const bodyHtml = `
-    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:#22314A; margin:0 0 16px;">Your consultation has been cancelled</h1>
-    <p style="font-size:15px; line-height:1.6; color:rgba(34,49,74,0.78); margin:0 0 24px;">
-      Hi ${name}, this confirms your consultation below is no longer booked.
+    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:${COLOR_NAVY_INK}; margin:0 0 16px;">Your appointment has been cancelled</h1>
+    <p style="font-size:15px; line-height:1.6; color:${COLOR_NAVY_INK_SOFT}; margin:0 0 24px;">
+      Hi ${name}, we're writing to confirm that your consultation below has been cancelled. We're sorry for any inconvenience this may cause.
     </p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
       ${detailRow('Treatment', treatment)}
       ${detailRow('Was on', `${date}`)}
       ${detailRow('Was at', `${time} (${timezone})`)}
     </table>
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
-      <tr>
-        <td style="border-radius:999px; background-color:#C9A66B;">
-          <a href="${bookingUrl}" style="display:inline-block; padding:13px 28px; font-family: Arial, sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#22314A; text-decoration:none; font-weight:bold;">
-            Book Another Time
-          </a>
-        </td>
-      </tr>
-    </table>
-    <p style="font-size:14px; line-height:1.6; color:rgba(34,49,74,0.68); margin:0;">
-      If you didn't request this cancellation, or have any questions, just reply to this email.
+    ${goldButton(bookingUrl, 'Book Another Time')}
+    <p style="font-size:14px; line-height:1.6; color:${COLOR_NAVY_INK_MID}; margin:0;">
+      If you didn't request this cancellation, or would like to arrange a new appointment, please don't hesitate to get in touch by replying to this email.
     </p>
   `;
 
   await brevo.transactionalEmails.sendTransacEmail({
     sender: { email: process.env.BREVO_SENDER_EMAIL, name: 'La Derma' },
     to: [{ email: to, name }],
-    subject: 'Your La Derma consultation has been cancelled',
+    subject: 'Your La Derma appointment has been cancelled',
     htmlContent: emailShell({
-      preheader: `Your ${treatment} consultation on ${date} at ${time} has been cancelled.`,
+      preheader: `Your ${treatment} on ${date} at ${time} has been cancelled.`,
       bodyHtml,
     }),
   });
@@ -276,20 +307,20 @@ export async function sendClientRescheduledEmail({
   const icsUrl = `${apiBase}/api/bookings/${bookingId}/calendar.ics`;
 
   const bodyHtml = `
-    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:#22314A; margin:0 0 16px;">Your consultation has been rescheduled</h1>
-    <p style="font-size:15px; line-height:1.6; color:rgba(34,49,74,0.78); margin:0 0 24px;">
-      Hi ${name}, your ${treatment} consultation has moved to a new time:
+    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:${COLOR_NAVY_INK}; margin:0 0 16px;">Your consultation has been rescheduled</h1>
+    <p style="font-size:15px; line-height:1.6; color:${COLOR_NAVY_INK_SOFT}; margin:0 0 24px;">
+      Hi ${name}, due to unforeseen circumstances we're unable to proceed with your original appointment. We've rescheduled your ${treatment} to the later date below.
     </p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
       ${detailRow('Treatment', treatment)}
-      ${detailRow('Previously', `<span style="text-decoration:line-through; color:rgba(34,49,74,0.45);">${was.date}, ${was.time}</span>`)}
+      ${detailRow('Previously', `<span style="text-decoration:line-through; color:${COLOR_NAVY_INK_GHOST};">${was.date}, ${was.time}</span>`)}
       ${detailRow('New date', now.date)}
       ${detailRow('New time', `${now.time} (${timezone})`)}
-      ${detailRow('Location', `${CLINIC_ADDRESS_TEXT}<br/><a href="${CLINIC_MAPS_URL}" style="color:#9C7A46; text-decoration:none; font-size:13px;">Get directions →</a>`)}
+      ${detailRow('Location', `${CLINIC_ADDRESS_TEXT}<br/><a href="${CLINIC_MAPS_URL}" style="color:${COLOR_GOLD_DEEP}; text-decoration:none; font-size:13px;">Get directions →</a>`)}
     </table>
     ${addToCalendarButton(icsUrl)}
-    <p style="font-size:14px; line-height:1.6; color:rgba(34,49,74,0.68); margin:0;">
-      If this new time doesn't work, just reply to this email and we'll sort out another one.
+    <p style="font-size:14px; line-height:1.6; color:${COLOR_NAVY_INK_MID}; margin:0;">
+      If this new date and time don't work for you, please get in touch by replying to this email and we'll find a time that suits you best.
     </p>
   `;
 
@@ -298,7 +329,7 @@ export async function sendClientRescheduledEmail({
     to: [{ email: to, name }],
     subject: 'Your La Derma consultation has been rescheduled',
     htmlContent: emailShell({
-      preheader: `Your ${treatment} consultation has moved to ${now.date} at ${now.time}.`,
+      preheader: `Your ${treatment} has moved to ${now.date} at ${now.time}.`,
       bodyHtml,
     }),
     attachment: [
@@ -307,6 +338,59 @@ export async function sendClientRescheduledEmail({
         content: Buffer.from(ics).toString('base64'),
       },
     ],
+  });
+}
+
+/**
+ * Sends the "thanks for visiting" email once an admin marks a booking
+ * complete (see calendar.js's completeBooking) — invites a Google/Facebook
+ * review and a social follow. GOOGLE_REVIEW_URL is optional: without it
+ * set, the review section just shows the Facebook link on its own rather
+ * than a broken/placeholder Google link going out to a real client.
+ */
+export async function sendClientCompletionEmail({ to, name, treatment }) {
+  const brevo = getBrevoClient();
+  if (!brevo) {
+    console.log('BREVO_API_KEY not set — skipping completion email.');
+    return;
+  }
+
+  const googleReviewUrl = process.env.GOOGLE_REVIEW_URL;
+
+  const reviewButtons = googleReviewUrl
+    ? `<tr>${outlineButtonCell(googleReviewUrl, 'Google')}${outlineButtonCell(FACEBOOK_URL, 'Facebook')}</tr>`
+    : `<tr>${outlineButtonCell(FACEBOOK_URL, 'Leave a Review')}</tr>`;
+
+  const bodyHtml = `
+    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:${COLOR_NAVY_INK}; margin:0 0 16px;">Thank you for visiting La Derma</h1>
+    <p style="font-size:15px; line-height:1.6; color:${COLOR_NAVY_INK_SOFT}; margin:0 0 24px;">
+      Hi ${name}, thank you for visiting us for your ${treatment} — we hope you had a wonderful experience and are delighted with your results.
+    </p>
+    <p style="font-size:14px; line-height:1.6; color:${COLOR_NAVY_INK_MID}; margin:0 0 12px;">
+      If you enjoyed your visit, a review would mean a great deal to us and helps other clients discover La Derma:
+    </p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 28px;">
+      ${reviewButtons}
+    </table>
+    <p style="font-size:14px; line-height:1.6; color:${COLOR_NAVY_INK_MID}; margin:0 0 8px;">
+      Stay connected for updates, offers and behind-the-scenes looks at the clinic — follow us on
+      <a href="${INSTAGRAM_URL}" style="color:${COLOR_GOLD_DEEP}; text-decoration:none;">Instagram</a>
+      and
+      <a href="${FACEBOOK_URL}" style="color:${COLOR_GOLD_DEEP}; text-decoration:none;">Facebook</a>.
+    </p>
+    <p style="font-size:14px; line-height:1.6; color:${COLOR_NAVY_INK_MID}; margin:24px 0 0;">
+      We look forward to welcoming you back soon.
+    </p>
+  `;
+
+  await brevo.transactionalEmails.sendTransacEmail({
+    sender: { email: process.env.BREVO_SENDER_EMAIL, name: 'La Derma' },
+    to: [{ email: to, name }],
+    subject: 'Thank you for visiting La Derma',
+    htmlContent: emailShell({
+      preheader: `Thank you for visiting La Derma for your ${treatment}.`,
+      bodyHtml,
+    }),
   });
 }
 
@@ -328,20 +412,12 @@ export async function sendPasswordResetEmail({ to, name, resetUrl }) {
   }
 
   const bodyHtml = `
-    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:#22314A; margin:0 0 16px;">Reset your password</h1>
-    <p style="font-size:15px; line-height:1.6; color:rgba(34,49,74,0.78); margin:0 0 24px;">
+    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:${COLOR_NAVY_INK}; margin:0 0 16px;">Reset your password</h1>
+    <p style="font-size:15px; line-height:1.6; color:${COLOR_NAVY_INK_SOFT}; margin:0 0 24px;">
       Hi ${name}, we received a request to reset the password on your La Derma account. Click below to choose a new one — this link expires in 1 hour.
     </p>
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
-      <tr>
-        <td style="border-radius:999px; background-color:#C9A66B;">
-          <a href="${resetUrl}" style="display:inline-block; padding:13px 28px; font-family: Arial, sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#22314A; text-decoration:none; font-weight:bold;">
-            Reset Password
-          </a>
-        </td>
-      </tr>
-    </table>
-    <p style="font-size:13px; line-height:1.6; color:rgba(34,49,74,0.56); margin:0;">
+    ${goldButton(resetUrl, 'Reset Password')}
+    <p style="font-size:13px; line-height:1.6; color:${COLOR_NAVY_INK_FAINT}; margin:0;">
       If you didn't request this, you can safely ignore this email — your password won't change.
     </p>
   `;
@@ -378,17 +454,17 @@ export async function sendClinicNotificationEmail({ name, email, phone, treatmen
   const { date, time } = formatDateTime(startISO, timezone);
 
   const bodyHtml = `
-    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:#22314A; margin:0 0 16px;">New consultation booked</h1>
+    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size:22px; color:${COLOR_NAVY_INK}; margin:0 0 16px;">New consultation booked</h1>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
       ${detailRow('Client', name)}
-      ${detailRow('Email', `<a href="mailto:${email}" style="color:#9C7A46; text-decoration:none;">${email}</a>`)}
+      ${detailRow('Email', `<a href="mailto:${email}" style="color:${COLOR_GOLD_DEEP}; text-decoration:none;">${email}</a>`)}
       ${detailRow('Phone', phone)}
       ${detailRow('Treatment', treatment)}
       ${detailRow('Date', date)}
       ${detailRow('Time', `${time} (${timezone})`)}
       ${detailRow('Notes', notes || '(none provided)')}
     </table>
-    <p style="font-size:13px; line-height:1.6; color:rgba(34,49,74,0.56); margin-top:20px;">
+    <p style="font-size:13px; line-height:1.6; color:${COLOR_NAVY_INK_FAINT}; margin-top:20px;">
       This has already been added to your connected Google Calendar.
     </p>
   `;
@@ -398,7 +474,7 @@ export async function sendClinicNotificationEmail({ name, email, phone, treatmen
     to: notifyTo,
     subject: `New booking: ${name} — ${treatment} on ${date}`,
     html: emailShell({
-      preheader: `${name} booked a ${treatment} consultation for ${date} at ${time}.`,
+      preheader: `${name} booked a ${treatment} for ${date} at ${time}.`,
       bodyHtml,
     }),
   });

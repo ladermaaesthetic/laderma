@@ -11,9 +11,11 @@ import {
   getAvailableSlots,
   createBooking,
   getBookingById,
-  listUpcomingBookings,
   cancelBooking,
   rescheduleBooking,
+  completeBooking,
+  getBookingCountsForMonth,
+  listBookingsForDate,
   createUnavailableBlock,
   listUnavailableBlocks,
   deleteUnavailableBlock,
@@ -392,16 +394,44 @@ app.delete('/api/account/bookings/:eventId', requireClientAuth, async (req, res)
 // site deliberately never exposes.
 // ---------------------------------------------------------------------------
 
-app.get('/api/admin/bookings', requireAdminAuth, async (req, res) => {
+// How many (non-block) bookings fall on each day of a given month — feeds
+// the little count badge under each date in the admin dashboard's calendar.
+app.get('/api/admin/bookings/counts', requireAdminAuth, async (req, res) => {
+  const year = Number(req.query.year);
+  const month = Number(req.query.month); // 1-12
+  if (!year || !month || month < 1 || month > 12) {
+    return res.status(400).json({ error: 'Provide ?year=YYYY&month=1-12.' });
+  }
+
   try {
-    const bookings = await listUpcomingBookings();
+    const counts = await getBookingCountsForMonth(year, month);
+    res.json({ counts });
+  } catch (err) {
+    if (err.message === 'CALENDAR_NOT_CONNECTED') {
+      return res.status(503).json({ error: 'Calendar is not connected.' });
+    }
+    console.error('Failed to load booking counts:', err);
+    res.status(500).json({ error: 'Could not load booking counts.' });
+  }
+});
+
+// Every booking on one specific date (past, present or future), with full
+// client details — feeds the admin dashboard's calendar day view.
+app.get('/api/admin/bookings/by-date', requireAdminAuth, async (req, res) => {
+  const { date } = req.query;
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return res.status(400).json({ error: 'Provide a date as ?date=YYYY-MM-DD' });
+  }
+
+  try {
+    const bookings = await listBookingsForDate(date);
     res.json({ bookings });
   } catch (err) {
     if (err.message === 'CALENDAR_NOT_CONNECTED') {
       return res.status(503).json({ error: 'Calendar is not connected.' });
     }
-    console.error('Failed to list bookings for admin:', err);
-    res.status(500).json({ error: 'Could not load bookings.' });
+    console.error('Failed to list bookings for date:', date, err);
+    res.status(500).json({ error: 'Could not load bookings for that date.' });
   }
 });
 
@@ -443,6 +473,22 @@ app.patch('/api/admin/bookings/:id/reschedule', requireAdminAuth, async (req, re
     }
     console.error('Failed to reschedule booking:', req.params.id, err);
     res.status(500).json({ error: 'Could not reschedule the booking.' });
+  }
+});
+
+// Marks a booking as completed and sends the client a "thanks for
+// visiting" email inviting a review and a social follow — used once an
+// appointment has actually happened. See calendar.js's completeBooking.
+app.post('/api/admin/bookings/:id/complete', requireAdminAuth, async (req, res) => {
+  try {
+    const booking = await completeBooking(req.params.id);
+    res.json({ completed: true, booking });
+  } catch (err) {
+    if (err.message === 'CALENDAR_NOT_CONNECTED') {
+      return res.status(503).json({ error: 'Calendar is not connected.' });
+    }
+    console.error('Failed to complete booking:', req.params.id, err);
+    res.status(500).json({ error: 'Could not mark the booking as completed.' });
   }
 });
 

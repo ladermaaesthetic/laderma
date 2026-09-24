@@ -6,6 +6,13 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "client", "run", "dev", "--", "--host"],
       "port": 5173
+    },
+    {
+      "name": "laderma-server",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server/index.js"],
+      "port": 4000,
+      "autoPort": false
     }
   ]
 }
