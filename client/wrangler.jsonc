@@ -1,0 +1,13 @@
+{
+  // Deploys this as a Cloudflare Workers static-assets site (Cloudflare's
+  // current replacement for the older, separate "Pages" product) — plain
+  // static file hosting for the Vite build output, with SPA routing so
+  // client-side routes like /booking or /privacy-policy don't 404 on a
+  // hard refresh or direct link.
+  "name": "laderma-v3",
+  "compatibility_date": "2026-09-25",
+  "assets": {
+    "directory": "./dist/",
+    "not_found_handling": "single-page-application"
+  }
+}
