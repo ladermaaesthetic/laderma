@@ -11,7 +11,7 @@ const PHILOSOPHY = [
 
 const STORY_POINTS = [
   'Bachelor of Science background with over 4 years of experience',
-  'Advanced treatments including PRP, Exosomes, Mesotherapy, and Endolift',
+  'Advanced treatments including PRP, Exosomes, Mesotherapy, Endolift, and Fractional Laser',
   'Natural, refined, and long lasting results over trend driven overcorrection',
   "Personalised treatment plans tailored to each client's skin and goals",
   'High standards of hygiene, safety, and professionalism',
@@ -126,7 +126,7 @@ export default function About() {
           <div>
             <p className="section-eyebrow">Advanced treatments</p>
             <h2 className="section-title" style={{ maxWidth: '26rem' }}>Thoughtful treatment planning across advanced regenerative and contour focused care.</h2>
-            <p className="section-desc" style={{ maxWidth: '38rem' }}>Alongside established injectable and skin focused services, La Derma offers advanced treatments such as PRP, Exosomes, Mesotherapy, and Endolift. Each option is recommended selectively, based on suitability, desired results, and a plan tailored to the individual rather than a trend.</p>
+            <p className="section-desc" style={{ maxWidth: '38rem' }}>Alongside established injectable and skin focused services, La Derma offers advanced treatments such as PRP, Exosomes, Mesotherapy, Endolift, and Fractional Laser. Each option is recommended selectively, based on suitability, desired results, and a plan tailored to the individual rather than a trend.</p>
             <div className="advanced-actions">
               <NavLink to="/pricing" className="btn btn-gold btn-gold-lg">Review Pricing</NavLink>
               <NavLink to="/gallery" className="btn btn-outline">View Gallery</NavLink>
@@ -140,6 +140,7 @@ export default function About() {
               <li>Exosomes</li>
               <li>Mesotherapy</li>
               <li>Endolift</li>
+              <li>Fractional Laser</li>
             </ul>
           </div>
         </div>
