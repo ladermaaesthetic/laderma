@@ -17,7 +17,6 @@ const SECTIONS = [
   { id: 'changes-cancellations', label: 'Changing or cancelling a booking' },
   { id: 'right-to-cancel', label: 'Your legal right to cancel' },
   { id: 'payment', label: 'Pricing and payment' },
-  { id: 'missed-appointments', label: 'Missed appointments' },
   { id: 'treatment-suitability', label: 'Treatment suitability' },
   { id: 'accounts', label: 'Your account' },
   { id: 'intellectual-property', label: 'Intellectual property' },
@@ -130,10 +129,13 @@ export default function TermsOfService() {
                 or change your booking.
               </p>
               <p>
-                We ask for at least <strong>2 days' (48 hours') notice</strong> to cancel or reschedule. This
-                gives us a fair chance to offer your slot to another client waiting for an appointment. See{' '}
-                <a href="#missed-appointments">Missed appointments</a> below for what happens if that notice
-                isn't given.
+                <strong>Cancellation policy:</strong> we ask for at least <strong>2 days' (48 hours') notice</strong>{' '}
+                to cancel or reschedule, so we have a fair chance to offer your slot to another client waiting for
+                an appointment. We don't charge a fee for a single late cancellation or missed appointment — we
+                understand plans change. However, if an appointment is cancelled with less than 2 days' notice, or
+                missed entirely without notice, <strong>more than twice</strong>, we'll require a deposit before
+                confirming any further booking. We'll always let you know directly if this applies to you before
+                you book again.
               </p>
               <p>
                 We may occasionally need to reschedule or cancel a booking ourselves — for example, if the clinic
@@ -168,21 +170,6 @@ export default function TermsOfService() {
                 Prices shown on our <a href="/pricing">Treatments &amp; Pricing</a> page are a guide to help you
                 plan, and may change from time to time. The price that applies to you will always be confirmed
                 with you at your consultation, before any treatment goes ahead.
-              </p>
-            </section>
-
-            <section id="missed-appointments">
-              <h2>Missed appointments</h2>
-              <p>
-                We don't charge a fee for a single late cancellation or missed appointment — we understand plans
-                change. We simply ask for at least 2 days' notice wherever possible (see{' '}
-                <a href="#changes-cancellations">Changing or cancelling a booking</a> above), so we can offer the
-                slot to someone else.
-              </p>
-              <p>
-                If an appointment is cancelled with less than 2 days' notice, or missed entirely without notice,{' '}
-                <strong>more than twice</strong>, we'll ask for a deposit before confirming any further booking.
-                We'll always let you know directly if this applies to you before you book again.
               </p>
             </section>
 
