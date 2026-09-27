@@ -2,7 +2,7 @@ import IntroHero from '../components/IntroHero';
 import { CLINIC_PHONE, CLINIC_PHONE_HREF } from '../data/siteData';
 import './LegalPage.css';
 
-const LAST_UPDATED = '24 September 2026';
+const LAST_UPDATED = '27 September 2026';
 
 const REGISTERED_OFFICE = '19 Jackson Street, Gateshead, United Kingdom, NE8 1EE';
 const COMPANY_NAME = 'La Derma Aesthetic Ltd';
@@ -125,9 +125,15 @@ export default function TermsOfService() {
             <section id="changes-cancellations">
               <h2>Changing or cancelling a booking</h2>
               <p>
-                If you have an account, you can cancel any upcoming booking yourself from{' '}
-                <a href="/account">My Account</a>, free of charge, at any time before the appointment. If you
-                booked as a guest, please contact us by phone to cancel or change your booking.
+                If you have an account, you can cancel or reschedule any upcoming booking yourself from{' '}
+                <a href="/account">My Account</a>. If you booked as a guest, please contact us by phone to cancel
+                or change your booking.
+              </p>
+              <p>
+                We ask for at least <strong>2 days' (48 hours') notice</strong> to cancel or reschedule. This
+                gives us a fair chance to offer your slot to another client waiting for an appointment. See{' '}
+                <a href="#missed-appointments">Missed appointments</a> below for what happens if that notice
+                isn't given.
               </p>
               <p>
                 We may occasionally need to reschedule or cancel a booking ourselves — for example, if the clinic
@@ -168,10 +174,15 @@ export default function TermsOfService() {
             <section id="missed-appointments">
               <h2>Missed appointments</h2>
               <p>
-                We don't currently charge a fee for a cancelled or missed appointment. We simply ask for as much
-                notice as possible if you can no longer make it, so we can offer the slot to someone else. We
-                reserve the right to introduce a deposit or cancellation charge for future bookings if
-                appointments are repeatedly missed without notice.
+                We don't charge a fee for a single late cancellation or missed appointment — we understand plans
+                change. We simply ask for at least 2 days' notice wherever possible (see{' '}
+                <a href="#changes-cancellations">Changing or cancelling a booking</a> above), so we can offer the
+                slot to someone else.
+              </p>
+              <p>
+                If an appointment is cancelled with less than 2 days' notice, or missed entirely without notice,{' '}
+                <strong>more than twice</strong>, we'll ask for a deposit before confirming any further booking.
+                We'll always let you know directly if this applies to you before you book again.
               </p>
             </section>
 
