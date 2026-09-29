@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useSeo } from '../../hooks/useSeo';
 import './admin.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
 export default function AdminLogin() {
+  useSeo({ title: 'Admin', path: '/admin', noindex: true });
+
   const navigate = useNavigate();
   const location = useLocation();
   const timedOut = Boolean(location.state?.timedOut);

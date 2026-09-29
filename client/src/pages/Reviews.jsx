@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import IntroHero from '../components/IntroHero';
+import { useSeo } from '../hooks/useSeo';
 import './Reviews.css';
 
 // Real client reviews, sourced from La Derma Aesthetic Clinic's Google
@@ -65,6 +66,12 @@ function ReviewCard({ review }) {
 }
 
 export default function Reviews() {
+  useSeo({
+    title: 'Client Reviews',
+    description: 'Real client reviews of La Derma Aesthetic Clinic in Gateshead — 5.0 average rating from clients who trust us with their aesthetic treatments.',
+    path: '/reviews',
+  });
+
   // Two independent pause states — one per row — so hovering row A stops
   // only row A while row B keeps scrolling, and vice versa.
   const [pausedA, setPausedA] = useState(false);

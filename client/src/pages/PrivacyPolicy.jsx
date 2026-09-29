@@ -1,5 +1,6 @@
 import IntroHero from '../components/IntroHero';
 import { CLINIC_PHONE, CLINIC_PHONE_HREF } from '../data/siteData';
+import { useSeo } from '../hooks/useSeo';
 import './LegalPage.css';
 
 const LAST_UPDATED = '24 September 2026';
@@ -26,6 +27,12 @@ const SECTIONS = [
 ];
 
 export default function PrivacyPolicy() {
+  useSeo({
+    title: 'Privacy Policy',
+    description: 'How La Derma Aesthetic Clinic collects, uses and protects your personal data, in line with UK GDPR.',
+    path: '/privacy-policy',
+  });
+
   return (
     <>
       <IntroHero

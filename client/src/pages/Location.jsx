@@ -1,5 +1,6 @@
 import IntroHero from '../components/IntroHero';
 import { CLINIC_ADDRESS } from '../data/siteData';
+import { useSeo } from '../hooks/useSeo';
 import './Location.css';
 
 function PinIcon() {
@@ -48,6 +49,13 @@ function mapsSearchUrl(query) {
 }
 
 export default function Location() {
+  useSeo({
+    title: 'Location & Directions',
+    description: 'Find La Derma Aesthetic Clinic at 19 Jackson Street, Gateshead — directions, how to find our entrance, and nearby car parking.',
+    path: '/location',
+    image: `https://ladermaaesthatic.com/location/clinic-entrance.webp`,
+  });
+
   return (
     <>
       <IntroHero

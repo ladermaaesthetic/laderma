@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import IntroHero from '../../components/IntroHero';
 import { useAuth } from '../../context/AuthContext';
+import { useSeo } from '../../hooks/useSeo';
 import '../Booking.css';
 import './Auth.css';
 
 export default function Register() {
+  useSeo({ title: 'Create an Account', path: '/account/register', noindex: true });
+
   const { register } = useAuth();
   const navigate = useNavigate();
 

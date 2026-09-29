@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import IntroHero from '../components/IntroHero';
+import { useSeo } from '../hooks/useSeo';
 import './Pricing.css';
 import './CategoryPage.css';
 
@@ -36,6 +37,16 @@ export default function CategoryPage() {
 
   const category = categories.find((cat) => cat.id === categoryId) || null;
   const otherCategories = categories.filter((cat) => cat.id !== categoryId);
+
+  // Falls back to a sensible generic description while the live pricing
+  // data is still loading, or if this category no longer exists — this
+  // still runs every render (not conditionally), since hooks can't follow
+  // the early returns below.
+  useSeo({
+    title: category ? category.title : 'Treatments & Pricing',
+    description: category ? category.desc : 'Explore La Derma Aesthetic Clinic\'s treatment menu and pricing.',
+    path: `/pricing/${categoryId}`,
+  });
 
   if (loading) {
     return (

@@ -1,11 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import IntroHero from '../components/IntroHero';
 import { PROCEDURES } from '../data/pricingData';
+import { useSeo } from '../hooks/useSeo';
 import './Pricing.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
 export default function Pricing() {
+  useSeo({
+    title: 'Treatments & Pricing',
+    description: 'Explore La Derma Aesthetic Clinic\'s full treatment menu and pricing, including laser hair removal, injectables, skin boosters and free consultations.',
+    path: '/pricing',
+  });
+
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);

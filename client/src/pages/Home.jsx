@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import FadeImage from '../components/FadeImage';
 import { IMAGES } from '../data/siteData';
+import { useSeo } from '../hooks/useSeo';
 import './Home.css';
 
 const SERVICES = [
@@ -46,6 +47,12 @@ function CheckIcon() {
 }
 
 export default function Home() {
+  useSeo({
+    title: 'Gateshead Aesthetic Clinic',
+    description: 'La Derma Aesthetic Clinic in Gateshead offers laser hair removal, Endolift, dermal fillers and anti-wrinkle treatments, with personalised consultations and refined, natural looking results.',
+    path: '/',
+  });
+
   return (
     <>
       {/* Hero */}

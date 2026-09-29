@@ -1,5 +1,6 @@
 import IntroHero from '../components/IntroHero';
 import { CLINIC_PHONE, CLINIC_PHONE_HREF } from '../data/siteData';
+import { useSeo } from '../hooks/useSeo';
 import './LegalPage.css';
 
 const LAST_UPDATED = '27 September 2026';
@@ -27,6 +28,12 @@ const SECTIONS = [
 ];
 
 export default function TermsOfService() {
+  useSeo({
+    title: 'Terms of Service',
+    description: 'The terms that apply when you use the La Derma Aesthetic Clinic website and book a consultation with us.',
+    path: '/terms-of-service',
+  });
+
   return (
     <>
       <IntroHero

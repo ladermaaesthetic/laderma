@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import IntroHero from '../../components/IntroHero';
+import { useSeo } from '../../hooks/useSeo';
 import '../Booking.css';
 import './Auth.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
 export default function ForgotPassword() {
+  useSeo({ title: 'Forgot Password', path: '/account/forgot-password', noindex: true });
+
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);

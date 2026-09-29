@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import IntroHero from '../components/IntroHero';
 import FadeImage from '../components/FadeImage';
+import { useSeo } from '../hooks/useSeo';
 import './Gallery.css';
 
 const ENTRIES = [
@@ -25,6 +26,12 @@ const ENTRIES = [
 ];
 
 export default function Gallery() {
+  useSeo({
+    title: 'Treatment Gallery',
+    description: 'Browse La Derma Aesthetic Clinic\'s treatment gallery, including spider vein laser treatment, Endolift, fillers and anti-wrinkle results.',
+    path: '/gallery',
+  });
+
   return (
     <>
       <IntroHero

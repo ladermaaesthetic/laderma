@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import IntroHero from '../../components/IntroHero';
 import { useAuth } from '../../context/AuthContext';
+import { useSeo } from '../../hooks/useSeo';
 import '../Booking.css';
 import './Account.css';
 
@@ -39,6 +40,8 @@ function BookingRow({ booking, onCancel, cancelling }) {
 }
 
 export default function Account() {
+  useSeo({ title: 'My Account', path: '/account', noindex: true });
+
   const { client, loading: authLoading, logout } = useAuth();
   const navigate = useNavigate();
 

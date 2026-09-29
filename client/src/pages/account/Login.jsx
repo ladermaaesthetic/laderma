@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import IntroHero from '../../components/IntroHero';
 import { useAuth } from '../../context/AuthContext';
+import { useSeo } from '../../hooks/useSeo';
 import '../Booking.css';
 import './Auth.css';
 
 export default function Login() {
+  useSeo({ title: 'Sign In', path: '/account/login', noindex: true });
+
   const { login, idleSignedOut, acknowledgeIdleSignOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import IntroHero from '../components/IntroHero';
+import { useSeo } from '../hooks/useSeo';
 import './About.css';
 
 const PHILOSOPHY = [
@@ -27,6 +28,12 @@ function CheckIcon() {
 }
 
 export default function About() {
+  useSeo({
+    title: 'About Us',
+    description: 'Meet Dalia Shahrour, founder of La Derma Aesthetic Clinic — science led aesthetics with a personal standard of care, from injectables to advanced regenerative treatments.',
+    path: '/about',
+  });
+
   return (
     <>
       <IntroHero

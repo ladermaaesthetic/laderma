@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { NavLink, useNavigate, useSearchParams } from 'react-router-dom';
 import IntroHero from '../../components/IntroHero';
 import { useAuth } from '../../context/AuthContext';
+import { useSeo } from '../../hooks/useSeo';
 import '../Booking.css';
 import './Auth.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
 export default function ResetPassword() {
+  useSeo({ title: 'Reset Password', path: '/account/reset-password', noindex: true });
+
   const { refresh } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

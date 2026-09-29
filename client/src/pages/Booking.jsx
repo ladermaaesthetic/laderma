@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import IntroHero from '../components/IntroHero';
 import { CLINIC_ADDRESS } from '../data/siteData';
 import { useAuth } from '../context/AuthContext';
+import { useSeo } from '../hooks/useSeo';
 import './Booking.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
@@ -29,6 +30,12 @@ function formatDateLabel(dateStr) {
 }
 
 export default function Booking() {
+  useSeo({
+    title: 'Book a Consultation',
+    description: 'Book a free consultation with La Derma Aesthetic Clinic in Gateshead — check live availability and reserve your appointment online.',
+    path: '/booking',
+  });
+
   const { client } = useAuth();
 
   const [status, setStatus] = useState(null); // { connected, consultationMinutes, timezone, treatments }

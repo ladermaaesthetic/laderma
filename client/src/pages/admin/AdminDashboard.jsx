@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import SessionTimeoutWarning from '../../components/SessionTimeoutWarning';
 import { useIdleTimeout } from '../../hooks/useIdleTimeout';
 import { IDLE_TIMEOUT_MS, IDLE_WARNING_MS } from '../../config/sessionTimeout';
+import { useSeo } from '../../hooks/useSeo';
 import './admin.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
@@ -121,6 +122,8 @@ function formatDateTime(iso, timezone) {
 }
 
 export default function AdminDashboard() {
+  useSeo({ title: 'Admin Dashboard', path: '/admin/dashboard', noindex: true });
+
   const navigate = useNavigate();
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [username, setUsername] = useState(null);
