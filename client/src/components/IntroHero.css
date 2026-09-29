@@ -1,16 +1,14 @@
 .intro{
   position:relative;
   overflow:hidden;
-  border-bottom:1px solid var(--line);
-  background:linear-gradient(180deg, var(--surface-3), rgba(244,235,223,0.92));
+  background:linear-gradient(180deg, var(--surface-3), var(--cream-bg));
 }
 .intro-bg{
   pointer-events:none;
   position:absolute;
   inset:0;
   background:
-    radial-gradient(circle at top left, rgba(226,200,158,0.32), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(91,115,147,0.12), transparent 32%);
+    radial-gradient(circle at top left, rgba(226,200,158,0.32), transparent 28%);
 }
 .intro-inner{
   position:relative;
