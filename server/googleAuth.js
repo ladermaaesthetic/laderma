@@ -98,7 +98,18 @@ export function getAuthorizedClient() {
   if (!tokens) return null;
 
   const oauth2Client = getOAuthClient();
-  oauth2Client.setCredentials(tokens);
+
+  // Only the refresh_token is trusted from storage. A saved access_token
+  // looks usable (its expiry_date is in the future) but can be stale,
+  // revoked, or mangled when copied into an env var — and googleapis does
+  // not retry a 401 for a token it believes is unexpired, so the server
+  // would fail every request with "invalid authentication credentials".
+  // Leaving it out makes googleapis mint a fresh access_token from the
+  // refresh_token on the first request. Falls back to the full stored
+  // token if there is no refresh_token to rely on.
+  oauth2Client.setCredentials(
+    tokens.refresh_token ? { refresh_token: tokens.refresh_token } : tokens
+  );
 
   // googleapis automatically refreshes the access_token using the refresh_token
   // when it expires, as long as tokens.refresh_token is present. Persist any
