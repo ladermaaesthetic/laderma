@@ -36,13 +36,13 @@ function readStoredToken() {
 
 function writeStoredToken(tokens) {
   // If GOOGLE_TOKEN_JSON is in use, we can't rewrite the platform's env
-  // vars from here — log the refreshed token so it can be updated
-  // manually if needed, but this normally only matters for the
-  // access_token, which Google reissues automatically from the
-  // refresh_token on every authorized request anyway.
+  // vars from here. A refresh only changes the short-lived access_token,
+  // which Google reissues from the refresh_token on every request anyway,
+  // so nothing needs saving. Tokens must never be written to the logs —
+  // they're live credentials and hosting logs are readable by anyone with
+  // dashboard access.
   if (process.env.GOOGLE_TOKEN_JSON) {
-    console.log('Token refreshed in memory. If issues persist, update GOOGLE_TOKEN_JSON with:');
-    console.log(JSON.stringify(tokens));
+    console.log('Google access token refreshed in memory.');
     return;
   }
   fs.mkdirSync(path.dirname(TOKEN_PATH), { recursive: true });
@@ -80,13 +80,13 @@ export async function saveTokenFromCode(code) {
   writeStoredToken(tokens);
 
   if (process.env.GOOGLE_TOKEN_JSON) {
+    // The new token is shown once on the "Google Calendar connected" page
+    // (see /api/auth/callback in index.js), not in the logs.
     console.log(
       'NOTE: GOOGLE_TOKEN_JSON is already set as an env var, which takes ' +
-      'priority. If you want THIS new connection to take effect, update ' +
-      'GOOGLE_TOKEN_JSON in your hosting dashboard to the value below, ' +
-      'then redeploy:'
+      'priority. To make THIS new connection active, copy the token from ' +
+      'the connect page into GOOGLE_TOKEN_JSON in your hosting dashboard.'
     );
-    console.log(JSON.stringify(tokens));
   }
 
   return tokens;
