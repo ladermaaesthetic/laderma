@@ -510,7 +510,11 @@
   .mobile-nav-backdrop{transition:none;}
 }
 
-@media (min-width: 900px){
+/* The full desktop bar (five links, Sign In and the CTA, all with wide
+   letter-spacing) needs about 1340px; below that it ran off the right edge
+   and made the whole page scroll sideways, so those widths keep the
+   hamburger drawer instead. */
+@media (min-width: 1360px){
   .mainnav{display:flex;}
   .header-cta{display:flex;}
   .menu-toggle{display:none;}
