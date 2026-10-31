@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 const SITE_NAME = 'La Derma Aesthetic Clinic';
 const SITE_URL = 'https://ladermaaesthatic.com';
-const DEFAULT_IMAGE = `${SITE_URL}/location/clinic-entrance.webp`;
+const DEFAULT_IMAGE = `${SITE_URL}/la-derma-logo.jpg`;
 
 function upsertMeta(attr, key, content) {
   let el = document.querySelector(`meta[${attr}="${key}"]`);
@@ -48,7 +48,8 @@ export function useSeo({ title, description, path = '', image = DEFAULT_IMAGE, n
     upsertMeta('property', 'og:type', 'website');
     upsertMeta('property', 'og:site_name', SITE_NAME);
 
-    upsertMeta('name', 'twitter:card', 'summary_large_image');
+    // A square logo suits the small "summary" card; real photos suit the large one.
+    upsertMeta('name', 'twitter:card', image === DEFAULT_IMAGE ? 'summary' : 'summary_large_image');
     upsertMeta('name', 'twitter:title', fullTitle);
     if (description) upsertMeta('name', 'twitter:description', description);
     upsertMeta('name', 'twitter:image', image);
