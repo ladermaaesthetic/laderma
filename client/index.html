@@ -64,9 +64,27 @@
       ]
     }
     </script>
+    <!-- Instant splash — shown from the very first paint, before the
+         JavaScript bundle has downloaded. React replaces everything inside
+         #root the moment it mounts, so this disappears on its own. -->
+    <style>
+      html, body { margin: 0; background: #FAF6EF; }
+      .boot { position: fixed; inset: 0; display: grid; place-items: center; background: #FAF6EF; }
+      .boot-mark { position: relative; width: 84px; height: 84px; display: grid; place-items: center; }
+      .boot-mark img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
+      .boot-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(156,122,70,0.2); border-top-color: #BE9861; animation: boot-spin 1s linear infinite; }
+      @keyframes boot-spin { to { transform: rotate(360deg); } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="boot" role="status" aria-label="Loading">
+        <div class="boot-mark">
+          <span class="boot-ring"></span>
+          <img src="/la-derma-logo.jpg" alt="" width="56" height="56">
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import IntroHero from '../components/IntroHero';
 import { PROCEDURES } from '../data/pricingData';
 import { useSeo } from '../hooks/useSeo';
+import Loader from '../components/Loader';
 import './Pricing.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
@@ -143,7 +144,7 @@ export default function Pricing() {
       {loading && (
         <section>
           <div className="container">
-            <p className="pricing-status">Loading treatment pricing…</p>
+            <Loader message="Loading treatment pricing…" />
           </div>
         </section>
       )}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import IntroHero from '../components/IntroHero';
 import { useSeo } from '../hooks/useSeo';
+import Loader from '../components/Loader';
 import './Pricing.css';
 import './CategoryPage.css';
 
@@ -52,7 +53,7 @@ export default function CategoryPage() {
     return (
       <section>
         <div className="container">
-          <p className="pricing-status">Loading treatment details…</p>
+          <Loader message="Loading treatment details…" />
         </div>
       </section>
     );

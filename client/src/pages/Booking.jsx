@@ -4,6 +4,7 @@ import IntroHero from '../components/IntroHero';
 import { CLINIC_ADDRESS } from '../data/siteData';
 import { useAuth } from '../context/AuthContext';
 import { useSeo } from '../hooks/useSeo';
+import { LoadingHint } from '../components/Loader';
 import './Booking.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
@@ -155,6 +156,9 @@ export default function Booking() {
       <>
         <BookingIntro />
         <section>
+          <div className="container" style={{ marginBottom: 16 }}>
+            <LoadingHint />
+          </div>
           <div className="container content-grid">
             <div>
               <div className="skeleton skeleton-eyebrow" />
